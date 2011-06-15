@@ -1,0 +1,2 @@
+# -*- coding: utf-8 -*-
+from plugins import pluginimport globalvimport sysfrom pluginHandler import load_pluginclass pluginClass(plugin):	def gettype(self):		return "command"	def action(self, complete):		for name in globalv.pluginList:			load_plugin(name)		return ["PRIVMSG $C$ :Ok, done."]	def describe(self, complete):		return ["PRIVMSG $C$ :I am the !say module","PRIVMSG $C$ :Usage:","PRIVMSG $C$ :!say [input]"]

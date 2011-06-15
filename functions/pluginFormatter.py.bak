@@ -1,0 +1,97 @@
+import globalv
+import settingsHandler
+import re
+from pluginArguments import pluginArguments
+def formatOutput(text,args):
+    newText=[]
+    if type(text)!=list:
+        text=[text]
+    for lines in text:
+        lines=lines.replace('$U$', args.user())
+        lines=lines.replace('$C$', args.channel())
+        newText.append(lines)
+    return newText
+
+def formatInput(arguments, aliases=globalv.aliasExtensions):
+    if aliases[arguments.cmd()[0]]!="":
+        toAdd=aliases[arguments.cmd()[0]][1:]
+        result=re.findall("\$([0-9][0-9]?[\+-]?)\$",toAdd)
+        suchAThingExists=re.search('\$..?.?\$',toAdd)
+        if result!=[]:
+            for value in result:
+                if value.find('+')==-1 and value.find('-')==-1:
+                    if (len(arguments.cmd()))>int(value):
+                        toAdd=toAdd.replace("$"+value+"$",arguments.cmd()[int(value)])
+                    else:
+                        if int(value)!=1:
+                            toAdd=toAdd.replace("$"+value+"$"," ")
+                        else:
+                            toAdd=toAdd.replace("$"+value+"$",arguments.user())
+                elif value.find('+')!=-1:
+                    value=value[:-1]
+                    if (len(arguments.cmd()))>(int(value)-1):
+                        toAdd=toAdd.replace("$"+value+"+$",' '.join(arguments.cmd()[int(value):]))
+                    else:
+                        toAdd=toAdd.replace("$"+value+"+$"," ")
+                elif value.find('-')!=-1:
+                    value=value[:-1]
+                    if (len(arguments.cmd()))>int(value):
+                        toAdd=toAdd.replace("$"+value+"-$",' '.join(arguments.cmd()[1:][:int(value)]))
+                    else:
+                        toAdd=toAdd.replace("$"+value+"-$"," ")
+        if toAdd.find('$*$')!=-1:
+            toAdd=toAdd.replace('$*$',' '.join(arguments.cmd()[1:]))
+        if toAdd.find('$URL$')!=-1:
+            toAdd=toAdd.replace('$URL$',' '.join(arguments.cmd()[1:]).replace(' ','%20'))
+        if suchAThingExists!=None:
+            msg=globalv.commandCharacter+arguments.cmd()[0]+" "+toAdd
+        else:
+            msg=arguments.complete()[1:].split(':',1)[1]+aliases[arguments.cmd()[0]]
+        ret=arguments.complete()[1:].split(':',1)
+        ret[1]=msg
+        arguments.setComplete(':'+':'.join(ret))
+    if arguments.cmd()[0]!="alias":
+        return expandExpansions(arguments)
+    return arguments
+def expandExpansions(toExpand, complete=None):
+    def runPluginReturnOutput(matchObj):
+        command=expanDict[matchObj.group(1)]
+        print "Running command"
+        inputString=":%s PRIVMSG %s :%s"%(toExpand.userMask(), toExpand.channel(), "!%s"%command)
+        input=formatInput(pluginArguments(inputString))
+        pluginOutput=globalv.loadedPlugins[command.split()[0]].action(input)[0]
+        output=':'.join(pluginOutput.split(':')[1:])
+        print "Output was",output
+        return output
+    if type(toExpand) in [str,unicode]:
+        isObj=False
+    else:
+        isObj=True
+    if settingsHandler.tableExists("'core-expansions'")==False:
+        settingsHandler.newTable("'core-expansions'","trigger","command")
+    expansions=settingsHandler.readSettingRaw("'core-expansions'","trigger,command")
+    expanDict={}
+    for trigger, command in expansions:
+        expanDict[trigger]=command
+        if isObj:
+            string=toExpand.fullMessage()
+            if string.find("$%s$"%trigger)!=-1:
+                #Found trigger. Executing command and retriving output
+                #inputString=":%s PRIVMSG %s :%s"%(toExpand.userMask(), toExpand.channel(), "!%s"%command)
+                #input=formatInput(pluginArguments(inputString))
+                #pluginOutput=globalv.loadedPlugins[command.split()[0]].action(input)[0]
+                #output=':'.join(pluginOutput.split(':')[1:])
+                string=re.sub("\$(%s)\$"%trigger,runPluginReturnOutput,string)
+                ret=toExpand.complete()[1:].split(':',1)
+                ret[1]=string
+                toExpand.setComplete(':'+':'.join(ret))
+        else:
+            if complete==None:
+                usermask="dummy!dummy@dummy"
+                channel="#dummy"
+            else:
+                usermask=complete.userMask()
+                channel=complete.channel()
+            if toExpand.find("$%s$"%trigger)!=-1:
+                toExpand=re.sub("\$(%s)\$"%trigger,runPluginReturnOutput,toExpand)
+    return toExpand

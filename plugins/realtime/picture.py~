@@ -1,0 +1,252 @@
+# -*- coding: utf-8 -*-
+from plugins import plugin
+import globalv
+import Image, ImageDraw, ImageFont
+import math
+import urllib
+import shutil
+import pickle
+import sys
+import os
+import httplib
+import mimetypes
+import re
+
+def multipartPOSTRequest(domain, externalFilePath, data, files):
+    contentType, body = encodeData(data, files)
+    h = httplib.HTTP(domain)
+    h.putrequest('POST', externalFilePath)
+    h.putheader('content-type', contentType)
+    h.putheader('content-length', str(len(body)))
+    h.endheaders()
+    h.send(body)
+    _,_,_= h.getreply()
+    return h.file.read()
+
+def encodeData(data, files):
+    boundary = '##|$7|##'
+    returnArray = []
+    for (key, value) in data:
+        returnArray.append('--' + boundary)
+        returnArray.append('Content-Disposition: form-data; name="%s"' % key)
+        returnArray.append('')
+        returnArray.append(value)
+    for (key, filename, value) in files:
+        returnArray.append('--' + boundary)
+        returnArray.append('Content-Disposition: form-data; name="%s"; filename="%s"' % (key, filename))
+        returnArray.append('Content-Type: %s' % getType(filename))
+        returnArray.append('')
+        returnArray.append(value)
+    returnArray.append('--' + boundary + '--')
+    returnArray.append('')
+    body = '\r\n'.join(returnArray)
+    contentType = 'multipart/form-data; boundary=%s' % boundary
+    return contentType, body
+
+def getType(filename):
+    return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+
+def _cmp_(a,b):
+    if a[1]<b[1]:
+        return 1
+    if a[1]>b[1]:
+        return -1
+    if a[0]>b[0]:
+        return 1
+    if a[0]<b[0]:
+        return -1
+    return 0
+
+class pluginClass(plugin):
+    def __init__(self):
+        self.charIgnore = '!@#$*():";\'?,.\x01\x02\xff\x16\t\r\n'
+        self.exceptions = [':D',
+                           ':)',
+                           ':(',
+                           'D:',
+                           'D=',
+                           '=D',
+                           '=)',
+                           '=(',
+                           ':\\',
+                           ':/',
+                           ':|',
+                           ':<',
+                           ':>',
+                           '>:(',
+                           '>:)',
+                           ':p',
+                           ':s',
+                           ':3',
+                           '3:',
+                           ':C',
+                           'C:',
+                           '^^',
+                           '^_^',
+                           '>_>',
+                           '<_<',
+                           '>_<',
+                           '<_>',
+                           '-_-',
+                           '._.',
+                           ';_;',
+                           ':\'(',
+                           'T_T',
+                           ':o',
+                           'o_o']
+
+    def gettype(self):
+        return "realtime"
+        
+    def action(self,complete):
+        logpath = os.path.join('config','picturelogs','picturelog-%s'%complete.channel())
+        logpath_u = os.path.join('config','picturelogs','picturelog-%s-%s'%(complete.channel(),complete.userMask()))
+
+        words_channel = dict()
+        words_user = dict()
+                
+        words = complete.fullMessage().split()
+        if words[0] == '!picture':
+            try:
+                if len(words)>1:
+
+                    width = None
+                    height = None
+                    c = 0
+                    for word in words:
+                        if word.isdigit():
+                            if c == 0:
+                                width = int(word)
+                                c += 1
+                            else:
+                                height = int(word)
+                                break
+                    if width == None:
+                        width,height = 1600,900
+                    elif height == None:
+                        height = width
+                        
+                    if words[1] == complete.channel() or words[1].isdigit():
+                        return self.showPicture(os.path.join('config','picturelogs','picturelog-%s'%complete.channel()),complete.channel(),width,height)
+                    else:
+                        return self.showPicture(os.path.join('config','picturelogs','picturelog-%s-%s'%(complete.channel(),words[1]+"!"+globalv.nicks[words[1]])),words[1],width,height)
+                else:
+                    return self.showPicture(os.path.join('config','picturelogs','picturelog-%s'%complete.channel()),complete.channel(),1600,900)
+            except Exception as detail:
+                print detail
+                return ["PRIVMSG $C$ :Error: dimensions too big or user does not exist."]               
+
+        if os.path.exists(logpath):
+            with open(logpath) as logFile:
+                words_channel = pickle.load(logFile)
+        if os.path.exists(logpath_u):
+            with open(logpath_u) as logFile:
+                words_user = pickle.load(logFile)
+
+        first = True
+        for word in words:
+            if first and word[0] == '\1':
+                first = False
+                continue
+
+            if word in self.exceptions or word.lower() in self.exceptions:
+                for cwords in [words_channel, words_user]:
+                    if cwords.has_key(word):
+                        cwords[word] += 1
+                    else:
+                        cwords[word] = 1
+                continue
+
+            #remove text coloring characters
+            word = re.sub("\x03\d\d?(,\d\d?)?", '', word)
+                    
+            word = word.lstrip(self.charIgnore).rstrip(self.charIgnore).lower()
+            for cwords in [words_channel, words_user]:
+                if cwords.has_key(word):
+                    cwords[word] += 1
+                else:
+                    cwords[word] = 1
+
+        with open(logpath,"w") as logFile:
+            pickle.dump(words_channel,logFile)
+        with open(logpath_u,"w") as logFile:
+            pickle.dump(words_user,logFile)
+        
+        return []
+
+    def showPicture(self, logpath, name,width,height):
+        filepath = os.path.join('config','picture-%s.png'%name)
+        if os.path.exists(logpath):
+            with open(logpath) as logFile:
+                words_dict = pickle.load(logFile)
+        else:
+            return ["PRIVMSG $C$ :He/she hasn't said anything yet!"]
+        
+        words = words_dict.items()
+        words.sort(_cmp_)
+        maxc = words[0][1]
+
+        FONTPATH = '/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans-Bold.ttf'
+
+        img = Image.new("RGB",(width,height),(255,255,255))
+        g = ImageDraw.Draw(img)
+        
+        x,y = 0,height/2
+        bottom,top = 0,0
+        first = True
+        d = 0
+        up = True
+        prevr = 1
+        f = ImageFont.truetype(FONTPATH,50)
+        
+        for word,count in [(x_,y_) for x_,y_ in words]:
+            r = int((50*math.log(count+1))/math.log(maxc+1))
+            word_ = ' '+word+' '
+            if prevr != r:
+                f = ImageFont.truetype(FONTPATH,r)
+            prevr = r
+            size = g.textsize(word_, f)
+            w,h = size
+            
+            if first:
+                bottom = y+h/2.5
+                top = y-h/2.5
+                first = False
+                
+            if x+w > width and x > 0:
+                x = 0
+                if up:
+                    y = top-h/2.5
+                    top = y-h/2.5
+                    d+=8
+                else:
+                    y = bottom+h/2.5
+                    bottom = y+h/2.5
+                up = not up
+                if bottom >= height and top <= 0:
+                    break
+            if word_.find('://')>=0:
+                g.text((x,y-h/2), word_, (d,d,255), f)
+            else:    
+                g.text((x,y-h/2), word_, (d,d,d), f)
+            x += w
+            
+        img.save("/home/py/public_html/channelImages/picture-%s.png"%name,"PNG")
+        return ['PRIVMSG $C$ :'+urllib.urlencode('http://terminus.mrflea.net:81/~py/channelImages/picture-%s.png'%name)]
+        #img.save(filepath, "PNG")
+            
+        #readFrom = open(filepath,'rb')
+        #readFrom.seek(0)
+        #file = readFrom.read()
+        #readFrom.close()
+        #files = [("fileupload",filepath,file)]
+        #response = multipartPOSTRequest("www.imageshack.us","/upload_api.php",[],files)
+        #for line in response.split('\n'):
+        #    if line.find("<image_link>")!=-1:
+        #        os.remove(filepath)
+        #        return ["PRIVMSG $C$ :"+(line.replace('<image_link>','').replace('</image_link>','').strip())]
+        #os.remove(filepath)
+        #return ["PRIVMSG $C$ :Failed to upload the picture, try again."]
+
+    def describe(self, complete):
+        return ["PRIVMSG $C$ :I am the picture module! Say !picture to see a piece of art made by you talking!"]

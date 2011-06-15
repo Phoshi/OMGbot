@@ -1,0 +1,8 @@
+def users():
+	return ["PY!SadFace@.*",".*cpc1-jarr4-0-0-cust59.gate.cable.virginmedia.com", ".*!SadFace@.*",".*!GFSEleusis@.*",".*katsu@.*.frgo.qwest.net",".*!katsu@.*cust.wildblue.net",".*Silver_Skr@.*.dsl.mindspring.com","omg@.*.hckr.nc.charter.com",".*!katsu@.*.frgo.qwest.net","darthbobby!.*@97-82-187-124.dhcp.hckr.nc.charter.com"] #OMGbot Identified User [2]
+def accessRight(user):
+	accessRights={"PY":[]}
+	if user in accessRights.keys():
+		return accessRights[user]
+	else:
+		return []

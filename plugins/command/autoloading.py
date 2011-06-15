@@ -1,0 +1,2 @@
+# -*- coding: utf-8 -*-
+from plugins import pluginimport osimport globalvclass pluginClass(plugin):	def gettype(self):		return "command"	def action(self, complete):		msg=complete.message()		pluginList=[]		for line in open(os.path.join("config","autoloading.txt")):			pluginList.append(line.strip())		msg="Autoloading plugins: "+', '.join(pluginList)		return ["PRIVMSG $C$ :"+msg]	def describe(self, complete):		return ["PRIVMSG $C$ :I am the !say module","PRIVMSG $C$ :Usage:","PRIVMSG $C$ :!say [input]"]

@@ -1,0 +1,54 @@
+# -*- coding: utf-8 -*-
+from plugins import plugin
+import globalv
+import settingsHandler
+from pluginArguments import pluginArguments
+from pluginFormatter import formatOutput, formatInput
+import time
+class pluginClass(plugin):
+    def gettype(self):
+        return "realtime"
+    def __init_db_tables__(self, name):
+        settingsHandler.newTable("laterd", "id", "recipient","sender","senderMask","timestamp","message", "channel", "sent")
+    def action(self, complete):
+        user=complete.user()
+        wipeMessage=True
+        if complete.type()!="PRIVMSG":
+            return [""]
+        returns=[]
+        messages=settingsHandler.readSettingRaw("laterd","sender, senderMask, timestamp, message",where="'"+user.lower()+"' GLOB recipient")
+        if messages!=[]:
+            for message in messages:
+                try:
+                    sender=message[0]
+                    senderMask=message[1]
+                    timestamp=message[2]
+                    message=message[3]
+                    plugin=message.split()[0]
+                    if plugin in globalv.loadedPlugins.keys():
+                        arguments=pluginArguments(':'+senderMask+" PRIVMSG "+complete.channel()+" :!"+message.replace('$recipient$', user))
+                        arguments=formatInput(arguments)
+                        message=globalv.loadedPlugins[plugin].action(arguments)
+                        if message in [[],[""]]:
+                            wipeMessage=False
+                        returns+=[m.decode('utf-8') for m in message]
+                        if message!=[""] and message!=[]:
+                            msg=message[0]
+                            if msg.split()[0]=="PRIVMSG" or msg.split()[0]=="NOTICE":
+                                location=msg.split()[1]
+                            else:
+                                location="$C$"
+                            returns.append("PRIVMSG "+location+" :From "+sender+" to "+user+" at "+time.strftime("%H:%M on %d-%m-%Y",time.gmtime(int(timestamp))))
+                    else:
+                        returns.append("PRIVMSG $C$ :"+message)
+                        returns.append("PRIVMSG $C$ :From "+sender+" to "+user+" at "+time.strftime("%H:%M on %d-%m-%Y",time.gmtime(int(timestamp))))
+                except Exception as detail:
+                    print "There was an error in one of the later messages:",detail
+        if wipeMessage:
+            #settingsHandler.deleteSetting("laterd","recipient",user.lower())
+            settingsHandler.executeQuery("DELETE FROM laterd WHERE '%s' GLOB recipient"%user.lower())
+            settingsHandler.db.commit()
+
+        return returns
+    def describe(self, complete):
+        return ["PRIVMSG $C$ :I am the !say module","PRIVMSG $C$ :Usage:","PRIVMSG $C$ :!say [input]"]
