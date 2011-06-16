@@ -50,7 +50,7 @@ class pluginArguments(object):
         return self.argument[1:].split()[0]
     def setMessage(self, message):
         print "Setting argument to",message
-        self.argument=':'.join(['',self.argument[1:].split(' :',1)[0],message])
+        self.argument=' :'.join(['',self.argument[1:].split(' :',1)[0],message])
     def type(self):
         message=self.argument[1:] if self.argument[0]==":" else self.argument
         message=message.split(' :',1)[0].split()
