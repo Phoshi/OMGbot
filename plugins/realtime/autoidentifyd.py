@@ -12,12 +12,13 @@ class pluginClass(plugin):
         settingsHandler.writeSetting(name, "nickname","PY")
         settingsHandler.writeSetting(name, "nickname","Silver_Skree")
     def __init__(self):
-        self.users=settingsHandler.readSetting("autoidentifyd","nickname")
+        self.users=settingsHandler.readSettingRaw("autoidentifyd","nickname")
         self.users=[x[0] for x in self.users]
         self.giveup={}
     def gettype(self):
         return "realtime"
     def action(self, complete):
+        print "xxx"
         idMessages=["identified for this nick","a registered nick","a registered nick"]
         if complete.user() in self.users and ".*!"+complete.userMask().split('!')[1] not in [x[0] for x in globalv.miscVars[2]]:
             if complete.user() not in self.giveup.keys():
