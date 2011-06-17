@@ -5,7 +5,6 @@ import traceback
 class pluginArguments(object):
     def __init__(self, content):
         self.argument=content
-        print "Creating new object with",content
     def message(self):
         try:
             message=self.argument[1:].split(' :',1)[1]
@@ -23,7 +22,6 @@ class pluginArguments(object):
         except:
             return ""
     def cmd(self):
-        print self.argument
         message=self.argument[1:].split(' :',1)[1]
         if __name__!="__main__":
             message=message[len(globalv.commandCharacter):]
@@ -49,7 +47,6 @@ class pluginArguments(object):
     def userMask(self):
         return self.argument[1:].split()[0]
     def setMessage(self, message):
-        print "Setting argument to",message
         self.argument=":"+' :'.join([self.argument[1:].split(' :',1)[0],message])
     def type(self):
         message=self.argument[1:] if self.argument[0]==":" else self.argument
@@ -61,7 +58,6 @@ class pluginArguments(object):
     def complete(self):
         return self.argument
     def setComplete(self, complete):
-        print "Setting new complete to", complete
         self.argument=complete
 
 if __name__=="__main__":

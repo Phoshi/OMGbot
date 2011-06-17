@@ -60,7 +60,6 @@ def formatInput(arguments, aliases=globalv.aliasExtensions, preprocess=True):
 
     return arguments
 def expand(complete):
-    print "Starting expansion of", complete.fullMessage()
     string=complete.fullMessage()
     while getArguments(string)!=[]:
         positions=getArguments(string)

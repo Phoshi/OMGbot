@@ -27,19 +27,24 @@ class pluginClass(plugin):
                     args+="::"
                 args+=pluginOutput
                 arguments=pluginArguments(complete.complete())
-                firstBit=arguments.complete().split(':')[1]
-                arguments.setComplete(":"+firstBit+":"+globalv.commandCharacter+plugin+" "+args)
+                print "======", arguments.complete()
+                firstBit=arguments.complete().split(' :')[1]
+                arguments.setComplete(":"+firstBit+" :"+globalv.commandCharacter+plugin+" "+args)
                 arguments=formatInput(arguments)
                 pluginOutput=globalv.loadedPlugins[plugin].action(arguments)
+                print pluginOutput
                 if pluginOutput!=[""]:
-                    starter=pluginOutput[0].split(':')[0]
+                    starter=pluginOutput[0].split(' :')[0]
+                    print starter
                     if starter.split()[0]=="PRIVMSG":
                         content=""
                         pluginOutput=[x for x in pluginOutput if x!=""]
                         for i,line in enumerate(pluginOutput):
-                            content+=':'.join(line.split(':')[1:])+(" | " if i!=len(pluginOutput)-1 else "")
-                        pluginOutput=starter+(':'+content if content!="" else "")
-                        pluginOutput=':'.join(pluginOutput.split(':')[1:]) if command!=commands[-1] else pluginOutput
+                            content+=' :'.join(line.split(' :')[1:])+(" | " if i!=len(pluginOutput)-1 else "")
+                            print content
+                        pluginOutput=starter+(' :'+content if content!="" else "")
+                        pluginOutput=' :'.join(pluginOutput.split(' :')[1:]) if command!=commands[-1] else pluginOutput
+                        print pluginOutput
                 else:
                     pluginOutput=""
 
