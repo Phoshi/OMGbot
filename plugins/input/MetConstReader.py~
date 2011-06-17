@@ -5,7 +5,7 @@ import time
 import feedparser
 import globalv
 class asyncInput(object):
-    def __init__(self,Queue,stop,channel, name):
+    def __init__(self,Queue, inputQueue):
         self.Queue=Queue
         colour="\x03"
         latestFeedItem=""
@@ -13,10 +13,17 @@ class asyncInput(object):
         checkFrequencies=[10,20,30,60,120,180,240,300]
         lastReadWasBlank=0
         checkFrequency=3
+        channels = []
         feed=feedparser.parse("http://"+feedName)
         latestFeedItem=feed.entries[0].id
-        Queue.put("#PRIVMSG "+channel+" :MetConst Reader "+name+" started up\r\n")
-        while stop.isSet()==False:
+        running = True
+        while running:
+            while not inputQueue.empty():
+                data = inputQueue.get()
+                if data.split()[0]=="add":
+                    channels.append(data.split()[1])
+                    Queue.put("#PRIVMSG %s :MetConst reader starting up"%data.split()[1])
+
             try:
                 feed=feedparser.parse("http://"+feedName)
                 newFeedItem=feed.entries[0].id
@@ -32,10 +39,12 @@ class asyncInput(object):
                             thread=SMFThread(item[0])
                             posterName=thread.thread['entriesByID'][thread.postID]['name']
                             posterName=posterName[0]+"\x03\x0311"+posterName[1:]
-                            Queue.put("#PRIVMSG "+channel+" :\x0312"+name+"\x03:\x0311 "+posterName+"\x03 posted in \x0311"+thread.thread['thread']['title']+"\x03 in \x0311"+thread.thread['thread']['linktree'][-1]+"\x03 (at \x0312"+item[0]+"\x03)\r\n")
+                            for channel in channels:
+                                Queue.put("#PRIVMSG "+channel+" :\x0312"+name+"\x03:\x0311 "+posterName+"\x03 posted in \x0311"+thread.thread['thread']['title']+"\x03 in \x0311"+thread.thread['thread']['linktree'][-1]+"\x03 (at \x0312"+item[0]+"\x03)\r\n")
                         except Exception as detail:
                             print "MetConst Reader Failed:", detail
-                            Queue.put("#PRIVMSG "+channel+" :\x0312"+name+"\x03:\x0311 "+item[1]+"\x03 (at \x0312"+item[0]+"\x03)\r\n")
+                            for channel in channels:
+                                Queue.put("#PRIVMSG "+channel+" :\x0312"+name+"\x03:\x0311 "+item[1]+"\x03 (at \x0312"+item[0]+"\x03)\r\n")
                     if checkFrequency>0:
                         checkFrequency-=len(newItems)
                         checkFrequency=0 if checkFrequency<0 else checkFrequency
@@ -50,10 +59,10 @@ class asyncInput(object):
                 time.sleep(checkFrequencies[checkFrequency])
             except Exception as detail:
                 print "RSS Grabbing failure! Bad feed?"
-                Queue.put("#PRIVMSG PY :"+name+" shutting down: "+str(detail)+"\r\n")
-                stop.set()
+                time.sleep(180)
 
-        Queue.put("#PRIVMSG "+channel+" :MetConst Reader "+name+" Shut down.\r\n")
+        for channel in channels:
+            Queue.put("#PRIVMSG "+channel+" :MetConst Reader "+name+" Shut down.\r\n")
     def gettype(self):
         return "input"
     def describe(self, complete):

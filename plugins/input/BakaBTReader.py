@@ -5,7 +5,7 @@ import globalv
 import re
 import urllib2
 class asyncInput(object):
-    def __init__(self,Queue,stop, channel, name):
+    def __init__(self,Queue, inputQueue, channel, name):
         self.Queue=Queue
         colour="\x03"
         url="http://www.bakabt.com/user/956181/"+name+".html"
@@ -14,7 +14,14 @@ class asyncInput(object):
         checkFrequencies=[10,20,30,60,120,180,240,300]
         lastReadWasBlank=0
         checkFrequency=3
-        while stop.isSet()==False:
+        running = True
+        while running:
+            while not inputQueue.empty():
+                data = inputQueue.get()
+                if data=="stop":
+                    running = False
+                    break
+
             try:
                 feed=urllib2.urlopen(url).read()
                 newFeedItem=re.findall("Share ratio</td>.*?<span.*?>(.*)</span>",feed.replace('\n','').replace('\r',''))[0]
@@ -32,8 +39,7 @@ class asyncInput(object):
                 time.sleep(checkFrequencies[checkFrequency])
             except Exception as detail:
                 print "Baka Grabbing failure! Bad feed?"
-                Queue.put("#PRIVMSG PY :"+name+" shutting down: "+str(detail))
-                stop.set()
+                time.sleep(120)
         Queue.put("#PRIVMSG "+channel+" :RSS Reader "+name+" Shut down.")
     def gettype(self):
         return "input"

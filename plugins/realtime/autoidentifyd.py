@@ -18,7 +18,6 @@ class pluginClass(plugin):
     def gettype(self):
         return "realtime"
     def action(self, complete):
-        print "xxx"
         idMessages=["identified for this nick","a registered nick","a registered nick"]
         if complete.user() in self.users and ".*!"+complete.userMask().split('!')[1] not in [x[0] for x in globalv.miscVars[2]]:
             if complete.user() not in self.giveup.keys():

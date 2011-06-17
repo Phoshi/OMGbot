@@ -24,7 +24,8 @@ class pluginClass(plugin):
         if isAllowed(complete.userMask())<getLevel(complete.cmd()[0]):
             return ["PRIVMSG $C$ :Only elevated users can do that!"]
         try:
-            globalv.loadedInputs[name.split()[0]].set()
+            globalv.loadedInputs[name.split()[0]].put("stop")
+            del globalv.loadedInputs[name.split()[0]]
             if not noKill:
                 settingsHandler.deleteSetting("'core-input'","input",name)
         except Exception as detail:

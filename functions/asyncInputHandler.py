@@ -13,14 +13,14 @@ class inputSystem(object):
     def addInputSource(self, source, *args):
         if self.getNumActiveSources()>100:
             raise Exception("Too many input sources, possible process-apocalypse detected!")
-        stop=threading.Event()
-        args=(self.Queue,stop)+(args[0] if len(args)>0 else ())
+        inputQueue = Queue.Queue()
+        args=(self.Queue, inputQueue)+(args[0] if len(args)>0 else ())
         q=threading.Thread(target=source, args=args)
         if self.primaryProducer=="":
             self.primaryProducer=q
         q.daemon=True
         self.processList.append(q)		
-        return stop
+        return inputQueue
     def startInputDaemons(self):
         for process in self.processList:
             if process.is_alive()==False:

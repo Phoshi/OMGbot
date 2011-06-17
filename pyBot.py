@@ -65,9 +65,9 @@ Null=0
 
 #Define Local Classes
 class asyncInput(object):
-    def __init__(self,Queue, stop):
+    def __init__(self,Queue, inputQueue):
         self.Queue=Queue
-        while stop.isSet()==False:
+        while True:
             data = irc.recv(4096)
             self.Queue.put(data)
     def gettype(self):
@@ -75,15 +75,6 @@ class asyncInput(object):
     def describe(self, complete):
         return ["PRIVMSG $C$ :I am the main IRC input module"]
 
-class asyncOutput(object):
-    def __init__(self, Queue):
-        while 1:
-            try:
-                data=Queue.get()
-                sendmessage(data)
-            except Exception as detail:
-                print "Output Queuer Exception:",detail
-                raise
 #Define local functions			
 def sendithread(msg):
     outputQueue.put(msg)
@@ -226,12 +217,14 @@ if __name__=="__main__":
     print "Loading input sources..."
     if settingsHandler.tableExists("'core-input'"):
         for input in settingsHandler.readSettingRaw("'core-input'","input, definition"):
-            x=__import__(str(input[1].split()[0]))
-            reload(x)
-            arguments=str(' '.join(input[1].split()[1:]))
-            #arguments=shlex.split(arguments)
-            arguments=arguments.split()
-            globalv.loadedInputs[input[0]]=globalv.input.addInputSource(x.asyncInput,tuple(arguments))
+            if input[0] not in globalv.loadedInputs.keys():
+                x=__import__(str(input[1].split()[0]))
+                reload(x)
+                arguments=str(' '.join(input[1].split()[1:]))
+                arguments=arguments.split()
+                globalv.loadedInputs[input[0]]=globalv.input.addInputSource(x.asyncInput,tuple(arguments))
+            else:
+                globalv.loadedInputs[input[0]].put(input[1])
     else:
         settingsHandler.newTable("'core-input'","input", "definition")
     globalv.input.addInputSource(asyncInput)

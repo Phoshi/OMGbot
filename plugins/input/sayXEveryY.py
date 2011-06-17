@@ -3,9 +3,16 @@ from plugins import plugin
 import time
 import globalv
 class asyncInput(object):
-	def __init__(self,Queue,stop,X,Y, channel):
+	def __init__(self,Queue, inputQueue,X,Y, channel):
+        running = True
 		self.Queue=Queue
-		while stop.isSet()==False:
+		while running:
+            while not inputQueue.empty():
+                data = inputQueue.get()
+                if data=="stop":
+                    running = False
+                    break
+
 			Queue.put("#PRIVMSG "+channel+" :"+X+"\r\n")
 			time.sleep(int(Y))
 	def gettype(self):

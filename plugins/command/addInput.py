@@ -45,8 +45,7 @@ class pluginClass(plugin):
             name= ' '.join(name.split()[1:])
             try:
                 if name.split()[0] in globalv.loadedInputs.keys():
-                    if globalv.loadedInputs[name.split()[0]].isSet()==False:
-                        raise Exception("An input module with that ID already exists!")
+                    raise Exception("An input module with that ID already exists!")
                 x=__import__(name.split()[1])
                 reload(x)
                 arguments=shlex.split(' '.join(name.split()[2:]))
@@ -56,6 +55,15 @@ class pluginClass(plugin):
                 globalv.input.startInputDaemons()
             except Exception as detail:
                 msg="Load failure: "+str(detail)
+        elif name.split()[0]=="send":
+            plugin = name.split()[1]
+            command = " ".join(name.split()[2:])
+            globalv.loadedInputs[plugin].put(command)
+            msg = "Sent message to plugin"
+        elif name.split()[0]=="autosend":
+            name= ' '.join(name.split()[1:])
+            settingsHandler.writeSetting("'core-input'", ["input", "definition"], [name.split()[0], ' '.join(name.split()[1:])])
+            msg = "Plugin configuration added"
         return ["PRIVMSG $C$ :"+msg]
     def describe(self, complete):
         return ["PRIVMSG $C$ :I am the !addInput module!","PRIVMSG $C$ :Usage:","PRIVMSG $C$ :!addInput [name] [plugin name] [arguments to plugin]"]
