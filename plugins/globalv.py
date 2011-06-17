@@ -4,8 +4,17 @@
 #Super important, deleting these is a Bad Idea
 import os
 import sys
-from asyncInputHandler import inputSystem
 database=sys.argv[1] if len(sys.argv)>1 else "config.db"
+if not os.path.exists("config"):
+    os.makedirs("config")
+import firstRun
+from asyncInputHandler import inputSystem
+from settingsHandler import readSetting, tableExists, readSettingRaw
+#First Run checkign
+if not tableExists("core"):
+	firstRun.createDatabase()
+	firstRun.createVariables()
+	firstRun.createAutoload()
 loadedPlugins={}
 loadedRealtime={}
 loadedSpecial={}
@@ -29,9 +38,8 @@ del load
 nickname=""
 commandCharacter="!"
 miscVars=[]
-from settingsHandler import readSetting
 masks={}
-nicks=dict([(nick, mask) for nick, mask in readSetting("'core-nickmasks'","nick,hostmask")])
+nicks=dict([(nick, mask) for nick, mask in readSettingRaw("'core-nickmasks'","nick,hostmask")])
 miscVars.append(nicks)
 miscVars.append(nickname) #Stores the bot's current nickname [1]
 miscVars.append([]) #OMGbot Identified Users [2]
