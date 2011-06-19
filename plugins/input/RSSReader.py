@@ -33,7 +33,8 @@ class asyncInput(object):
                         potentialName = data.split()[1]
                     print potentialName
                     feedNames[data.split()[1]] = potentialName
-                    latestFeedItem[data.split()[1]]=""
+                    feed=feedparser.parse("http://"+data.split()[1])
+                    latestFeedItem[data.split()[1]]=feed.entries[0].id
                     Queue.put("#PRIVMSG %s :Added feed to list!\r\n"%channel)
                 if data.split()[0]=="remove":
                     if data.split()[1] in feeds:
