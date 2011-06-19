@@ -9,6 +9,7 @@ class asyncInput(object):
     def __init__(self,Queue, inputQueue, channel):
         self.Queue=Queue
         running = True
+        initComplete = False #To silence input before startup is handled
         colour="\x03"
         self.Queue.put("#PRIVMSG %s :RSS Reader started up successfully\r\n"%(channel))
         feeds = []
@@ -18,38 +19,41 @@ class asyncInput(object):
         lastReadWasBlank=0
         checkFrequency=0
         while running:
-            print "Looping!"
             while not inputQueue.empty():
                 data = inputQueue.get()
-                print "Data in queue:",data
                 if data=="stop":
                     running = False
                     break
                 if data.split()[0]=="add":
                     feeds.append(data.split()[1])
                     potentialName = ' '.join(data.split()[2:])
-                    print data.split()[1]
                     if potentialName.strip()=="":
                         potentialName = data.split()[1]
-                    print potentialName
                     feedNames[data.split()[1]] = potentialName
                     feed=feedparser.parse("http://"+data.split()[1])
                     latestFeedItem[data.split()[1]]=feed.entries[0].id
-                    Queue.put("#PRIVMSG %s :Added feed to list!\r\n"%channel)
+                    if initComplete:
+                        Queue.put("#PRIVMSG %s :Added feed to list!\r\n"%channel)
                 if data.split()[0]=="remove":
                     if data.split()[1] in feeds:
                         feeds.remove(data.split()[1])
-                        Queue.put("#PRIVMSG %s :Removed feed from list!\r\n"%channel)
+                        if initComplete:
+                            Queue.put("#PRIVMSG %s :Removed feed from list!\r\n"%channel)
                     else:
-                        Queue.put("#PRIVMSG %s :Feed not currently being read!\r\n"%channel)
+                        if initComplete:
+                            Queue.put("#PRIVMSG %s :Feed not currently being read!\r\n"%channel)
                 if data.split()[0]=="intervals":
                     checkFrequencies = [int(checkTime) for checkTime in data.split()[1:]]
                     checkFrequency = 0
-                    Queue.put("#PRIVMSG %s :Set check intervals\r\n"%channel)
+                    if initComplete:
+                        Queue.put("#PRIVMSG %s :Set check intervals\r\n"%channel)
                 if data.split()[0]=="list":
-                    Queue.put("#PRIVMSG %s :RSS Reader for channel %s is following:\r\n"%(channel, channel))
-                    for feed in feeds:
-                        Queue.put("#PRIVMSG %s :%s: %s\r\n"%(channel, feedNames[feed], feed))
+                    if initComplete:
+                        Queue.put("#PRIVMSG %s :RSS Reader for channel %s is following:\r\n"%(channel, channel))
+                        for feed in feeds:
+                            Queue.put("#PRIVMSG %s :%s: %s\r\n"%(channel, feedNames[feed], feed))
+                if data=="--init--":
+                    initComplete = True
 
                     
             try:

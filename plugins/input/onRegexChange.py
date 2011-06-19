@@ -14,6 +14,7 @@ class asyncInput(object):
         checkFrequency=3
         feeds = []
         running = True
+        initComplete = False
         while running:
             while not inputQueue.empty():
                 data = inputQueue.get()
@@ -28,10 +29,14 @@ class asyncInput(object):
                     regex = data[2]
                     latestFeedItem[(name, url, regex)]=""
                     feeds.append((name, url, regex))
+                    if initComplete:
+                        Queue.put("#PRIVMSG %s :Scraping '%s' for regex '%s'\r\n"%(channel, url, regex))
                 if data=="list":
                     Queue.put("#PRIVMSG %s :Regex Reader for %s reading:\r\n"%(channel, channel))
                     for name, url, regex in feeds:
                         Queue.put("#PRIVMSG %s :%s: %s (%s)\r\n"%(channel, name, regex, url))
+                if data=="--init--":
+                    initComplete = True
                             
             try:
                 for feedItem in feeds:

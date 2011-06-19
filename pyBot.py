@@ -224,9 +224,11 @@ if __name__=="__main__":
                 arguments=arguments.split()
                 globalv.loadedInputs[input[0]]=globalv.input.addInputSource(x.asyncInput,tuple(arguments))
             else:
-                globalv.loadedInputs[input[0]].put(input[1])
+                globalv.loadedInputs[input[0]].put(str(input[1]))
     else:
         settingsHandler.newTable("'core-input'","input", "definition")
+    for input in globalv.loadedInputs.keys():
+        globalv.loadedInputs[input].put("--init--")
     globalv.input.addInputSource(asyncInput)
     print "Loading output threads..."
     #outputQueue=Queue.Queue(10)
