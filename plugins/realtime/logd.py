@@ -17,7 +17,7 @@ class pluginClass(plugin):
         if arguments.channel().lower() in ignores or arguments.user().lower() in ignores:
             print "Channel or User Ignored"
             return [""]
-        complete=arguments.complete()[1:].split(':',1)
+        complete=arguments.complete()[1:].split(' :',1)
         if len(complete)>1:
             msg=complete[1]
         else:

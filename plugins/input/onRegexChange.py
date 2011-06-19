@@ -36,6 +36,10 @@ class asyncInput(object):
             try:
                 for feedItem in feeds:
                     name, url, regex = feedItem
+                    print "-"*20
+                    print feedItem 
+                    print name, url, regex
+                    print "-"*20
                     feed=urllib2.urlopen(url).read()
                     try:
                         newFeedItem=re.findall(regex,feed.replace('\n','').replace('\r',''))[0]
@@ -71,6 +75,7 @@ class asyncInput(object):
             except Exception as detail:
                 print "Regex Grabbing failure! Bad feed?"
                 Queue.put("#PRIVMSG PY :"+name+" shutting down: "+str(detail)+"\r\n")
+                time.sleep(60)
         Queue.put("#PRIVMSG "+channel+" :Site Reader "+name+" Shut down.\r\n")
     def gettype(self):
         return "input"
