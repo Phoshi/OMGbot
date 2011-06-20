@@ -59,15 +59,16 @@ class pluginClass(plugin):
             file.close()
             if msgType=="QUIT":
                 for channel in set(globalv.channels):
-                    if not user in globalv.channelUsers[channel]:
-                        continue
-                    if os.path.exists(os.path.join("logs","LogFile - "+channel+"-"+str(ttime[0]) + "-" + str(ttime[7]))):
-                        file=open(os.path.join("logs","LogFile - "+channel+"-"+str(ttime[0]) + "-" + str(ttime[7])),"a")
-                    else:
-                        file=open(os.path.join("logs","LogFile - "+channel+"-"+str(ttime[0]) + "-" + str(ttime[7])),"w")
-                    message="[%(time)s] < %(user)s has quit: %(reason)s" % {"time":time.strftime("%d %b %y %H:%M"), "user":userMask,"reason":msg}
-                    file.write(message+"\n")
-                    file.close()
+                    if channel in globalv.channelUsers.keys():
+                        if not user in globalv.channelUsers[channel]:
+                            continue
+                        if os.path.exists(os.path.join("logs","LogFile - "+channel+"-"+str(ttime[0]) + "-" + str(ttime[7]))):
+                            file=open(os.path.join("logs","LogFile - "+channel+"-"+str(ttime[0]) + "-" + str(ttime[7])),"a")
+                        else:
+                            file=open(os.path.join("logs","LogFile - "+channel+"-"+str(ttime[0]) + "-" + str(ttime[7])),"w")
+                        message="[%(time)s] < %(user)s has quit: %(reason)s" % {"time":time.strftime("%d %b %y %H:%M"), "user":userMask,"reason":msg}
+                        file.write(message+"\n")
+                        file.close()
             if msgType=="NICK":
                 for channel in set(globalv.channels):
                     if not user in globalv.channelUsers[channel]:

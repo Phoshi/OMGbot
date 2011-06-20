@@ -16,7 +16,7 @@ class pluginClass(plugin):
         return 150
     def action(self, complete):
         name=complete.message()
-        msg="Input Module Loaded Successfully"
+        msg="There was an error in your input!"
         if isAllowed(complete.userMask())<getLevel(complete.cmd()[0]):
             return [""]
         if name.split()[0]=="list":
@@ -53,6 +53,7 @@ class pluginClass(plugin):
                 print arguments
                 settingsHandler.writeSetting("'core-input'", ["input", "definition"], [name.split()[0], ' '.join(name.split()[1:])])
                 globalv.input.startInputDaemons()
+                msg="Plugin loaded successfully!"
             except Exception as detail:
                 msg="Load failure: "+str(detail)
         elif name.split()[0]=="send":
@@ -64,6 +65,9 @@ class pluginClass(plugin):
             name= ' '.join(name.split()[1:])
             settingsHandler.writeSetting("'core-input'", ["input", "definition"], [name.split()[0], ' '.join(name.split()[1:])])
             msg = "Plugin configuration added"
+        elif name.split()[0]=="unautosend":
+            settingsHandler.deleteSetting("'core-input'", "definition", ' '.join(name.split()[1:]))
+            msg="Configuration removed!"
         return ["PRIVMSG $C$ :"+msg]
     def describe(self, complete):
         return ["PRIVMSG $C$ :I am the !addInput module!","PRIVMSG $C$ :Usage:","PRIVMSG $C$ :!addInput [name] [plugin name] [arguments to plugin]"]

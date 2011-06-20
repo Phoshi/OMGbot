@@ -8,6 +8,7 @@ class pluginClass(plugin):
     def action(self, complete):
         msg=complete.message()
         list=settingsHandler.readSettingRaw("coreIgnorance","ignorance,nickname")
+        print [x[0] for x in settingsHandler.readSettingRaw("coreIgnorance","ignorance")]
         laters=[]
         print list
         for line in list:

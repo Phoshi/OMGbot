@@ -37,7 +37,7 @@ def unload_plugin(name): #Unloads a plugin (A bit dirty, but it works)
     success=1
     if name in globalv.loadedPlugins.keys():
         del globalv.loadedPlugins[name]
-    elif name in globalv.loadedRealtime.keys()	:
+    elif name in globalv.loadedRealtime.keys():
         del globalv.loadedRealtime[name]
     elif name in globalv.loadedSpecial.keys():
         del globalv.loadedSpecial[name]

@@ -256,6 +256,7 @@ if __name__=="__main__":
                             datum=globalv.loadedPreprocess[plugin].action(pluginArguments(datum))
                         except Exception as detail:
                             print plugin, "failed:",detail
+                            traceback.print_tb(sys.exc_info()[2])
                     if datum=="":
                         break
                     arguments=pluginArguments(datum)
@@ -265,8 +266,9 @@ if __name__=="__main__":
                             send(formatOutput(output,arguments))
                         except Exception as detail:
                             print plugin, "failed:",str(detail)
+                            traceback.print_tb(sys.exc_info()[2])
                     if datum.split()[0]=="ERROR":
-                        sys.exit(0)
+                            sys.exit(0)
                     if datum.split()[0]=="PING":
                         send("PONG "+datum.split(':')[1])
                     if len(datum.split())>1:
@@ -295,9 +297,7 @@ if __name__=="__main__":
                             if len(complete)>1:
                                 if complete[1].startswith(globalv.commandCharacter):
                                     try:
-                                        now=time.time()
                                         parse(datum)
-                                        print time.time()-now
                                     except Exception as detail:
                                         print "Base Plugin Exection Failure:",detail
                                         traceback.print_tb(sys.exc_info()[2])
@@ -314,6 +314,7 @@ if __name__=="__main__":
                                     send(formatOutput(output,arguments))
                                 except Exception as detail:
                                     print plugin, "failed:",str(detail)
+                                    traceback.print_tb(sys.exc_info()[2])
                 else:
                     send(datum[1:])
         except KeyboardInterrupt:

@@ -16,7 +16,9 @@ class pluginClass(plugin):
         
     def action(self,complete):
         logUser = True
-        if complete.channel()[0] != '#' or complete.type()!="PRIVMSG":
+        if complete.channel()=="":
+            return [""]
+        if not complete.channel()[0] == '#' or not complete.type()=="PRIVMSG":
             return [""]
         
         if not ".*!"+complete.userMask().split('!',1)[1] in [x[0] for x in globalv.miscVars[2]]:
