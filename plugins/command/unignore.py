@@ -24,12 +24,10 @@ class pluginClass(plugin):
         if msg in globalv.miscVars[0]:
             msg=globalv.miscVars[0][msg]
         try:
-            print amsg
-            print [x[0] for x in settingsHandler.readSettingRaw("coreIgnorance","ignorance")]
             if amsg in [x[0] for x in settingsHandler.readSettingRaw("coreIgnorance","ignorance")]:
                 settingsHandler.deleteSetting("coreIgnorance","ignorance",amsg)
-            msg=".*@"+msg.split('@')[1] if msg.find('@')!=-1 else msg
-            print msg
+                return ["PRIVMSG $C$ :"+amsg + " successfully unignored, cap'n!"]
+            msg=".*@"+msg.split('@')[1] if msg.find('@')>0 else msg
             if msg in [x[0] for x in settingsHandler.readSettingRaw("coreIgnorance","ignorance")]:
                 settingsHandler.deleteSetting("coreIgnorance","ignorance",msg)
                 return ["PRIVMSG $C$ :"+amsg + " successfully unignored, cap'n!"]

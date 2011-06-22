@@ -24,7 +24,9 @@ def isBanned(complete):
             return 1
     nick=complete.user()
     if "@whitelist" in toIgnore:
-        if (isAllowed(complete.userMask()))<10:
+        if isAllowed(complete.userMask())<10:
+            print complete.complete()
+            print isAllowed(complete.userMask())
             print "Ignored"
             return 1
     if isAllowed(complete.userMask())>=100:
