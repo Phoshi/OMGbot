@@ -8,6 +8,8 @@ class pluginClass(plugin):
     def action(self, complete):
         msg=complete.message()
         readFile=""
+        if msg=="":
+            return ["PRIVMSG $C$ :https://github.com/Phoshi/OMGbot"]
         if msg.find('.')==-1:
             if msg=="OMGbot": msg="../../pyBot"
             for plugindir in ["command","realtime", "postprocess", "preprocess", "input","../functions"]:
