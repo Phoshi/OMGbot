@@ -46,7 +46,7 @@ class pluginClass(plugin):
     def gettype(self):
         return "realtime"
     def action(self, complete):
-        complete=complete.complete()[1:].split(':',1)
+        complete=complete.complete()[1:].split(' :',1)
         if len(complete[0].split())>2:
             if complete[0].split()[1]=="PRIVMSG":
                 msg=complete[1]
