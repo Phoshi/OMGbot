@@ -34,7 +34,7 @@ class pluginClass(plugin):
                         success=True
                     time.sleep(30)
 
-        complete=completeargs.complete()[1:].split(':',1)
+        complete=completeargs.complete()[1:].split(' :',1)
         imageFileTypes=[".jpg",".png",".bmp"]
         ignores=[x[0].lower() for x in settingsHandler.readSettingRaw("tumblrd","ignore")]
         if completeargs.channel().lower() in ignores or completeargs.user().lower() in ignores:
