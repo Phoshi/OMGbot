@@ -25,13 +25,16 @@ class asyncInput(object):
                     running = False
                     break
                 if data.split()[0]=="add":
-                    feeds.append(data.split()[1])
+                    feedLink = data.split()[1]
+                    if feedLink[:7]=="http://":
+                        feedLink = feedLink[7:]
+                    feeds.append(feedLink)
                     potentialName = ' '.join(data.split()[2:])
                     if potentialName.strip()=="":
-                        potentialName = data.split()[1]
-                    feedNames[data.split()[1]] = potentialName
-                    feed=feedparser.parse("http://"+data.split()[1])
-                    latestFeedItem[data.split()[1]]=feed.entries[0].id
+                        potentialName = feedLink
+                    feedNames[feedLink] = potentialName
+                    feed=feedparser.parse("http://"+feedLink)
+                    latestFeedItem[feedLink]=feed.entries[0].id
                     if initComplete:
                         Queue.put("#PRIVMSG %s :Added feed to list!\r\n"%channel)
                 if data.split()[0]=="remove":
