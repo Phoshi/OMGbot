@@ -46,7 +46,7 @@ class pluginClass(plugin):
             print "Formatting output"
             output = formatOutput(pluginOutput, complete)
             print "Decoding output"
-            output = [o.decode('utf-8') for o in output]
+            output = [o for o in output]
             print "Success! Adding output to output list",output
             outputList+=output
         return outputList
