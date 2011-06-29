@@ -71,6 +71,7 @@ class pluginClass(plugin):
                             page=response.read(50000)
                             page=page.replace('\n','')
                             fullURL=response.geturl()
+                            domain = re.search("(?P<url>https?://[^/\s]+)", fullURL).group("url")
 
                         except Exception as detail:
                             print detail
