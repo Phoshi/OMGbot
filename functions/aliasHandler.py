@@ -45,6 +45,21 @@ def load_alias(name, plugin): #Loads an alias
             print "Would have broken here"
         except:
             globalv.aliasExtensions.update({name:''})
+#Renames an alias, returns true on success and false on failure
+def rename_alias(name, newName): 
+    if (name not in globalv.loadedAliases.keys()):
+        return False
+    if (newName in globalv.loadedAliases.keys()):
+        return False
+    globalv.loadedPlugins[newName] = globalv.loadedPlugins[name]
+    globalv.loadedAliases[newName] = globalv.loadedAliases[name]
+    globalv.aliasExtensions[newName] = globalv.aliasExtensions[name]
+    del globalv.loadedPlugins[name]
+    del globalv.loadedAliases[name]
+    del globalv.aliasExtensions[name]
+    settingsHandler.executeQuery("UPDATE alias SET aliasName=\"%s\" WHERE aliasName=\"%s\""%(newName, name))
+    return True
+
 def save_alias(name): #Saves alias to a file, to stick around between sessions. Returns 1 for complete, 0 for the plugin not existing in the current instnace, and 2 if it fails for some reason.
     if name in globalv.loadedAliases.keys(): #To check if the alias is in the current instance (IE, it actually works)
         isIn=0
