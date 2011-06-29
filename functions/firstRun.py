@@ -30,7 +30,6 @@ def createVariables():
         pickle.dump({},file,pickle.HIGHEST_PROTOCOL)
 
 def createAutoload():
-    autoloadFile = open(os.path.join("config", "autoloading.txt"), "w")
-    autoloadFile.write("load\n")
-    autoloadFile.write("autoidentifyd")
-    autoloadFile.close()
+    settingsHandler.newTable("coreAutoLoad", "plugin", "loadAs")
+    settingsHandler.writeSetting("coreAutoLoad", ["plugin", "loadAs"], ["load", "load"])
+    settingsHandler.writeSetting("coreAutoLoad", ["plugin", "loadAs"], ["autoidentifyd", "autoidentifyd"])

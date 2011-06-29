@@ -27,6 +27,7 @@ def load_alias(name, plugin): #Loads an alias
                 settingsHandler.writeSetting("'core-userlevels'", ["plugin", "level"],[name, str(globalv.loadedPlugins[plugin.split()[0]].__level__())])
             unload_plugin(plugin.split()[0])
         globalv.loadedAliases.update({name:plugin})
+        globalv.basePlugin[name] = plugin.split()[0]
     except Exception as detail:
         print detail
         try:

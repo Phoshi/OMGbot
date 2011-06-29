@@ -206,11 +206,9 @@ def parse(msg):
 if __name__=="__main__":
     #Load plugins and aliases.
     print "Loading plugins..."
-    for plugin in globalv.pluginList:
-        try:
-            load_plugin(plugin)
-        except Exception as detail:
-            print "Plugin",plugin,"is invalid:",detail
+    for plugin, loadAs in globalv.pluginList:
+        print plugin, loadAs
+        load_plugin(plugin, loadAs)
     print "Loading aliases..."
     for line in settingsHandler.readSetting("alias","aliasName, aliasPlugin, aliasArguments"):
         load_alias(line[0], ' '.join(line[1:]))

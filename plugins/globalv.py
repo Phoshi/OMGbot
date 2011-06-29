@@ -30,6 +30,7 @@ channelUsers={}
 loadedInputs={}
 input=inputSystem()
 outputQueue=[]
+basePlugin={}
 from pickle import load
 with open(os.path.join("config","variables")) as file:
     variables=load(file)
@@ -51,5 +52,5 @@ if type(channels[0])==tuple:
 elif type(channels[0])==unicode:
     channels=[channels]
 pluginList=[]
-for line in open(os.path.join("config","autoloading.txt")):
-    pluginList.append(line.strip())
+for line in readSettingRaw("coreAutoLoad", "plugin, loadAs"):
+    pluginList.append(line)

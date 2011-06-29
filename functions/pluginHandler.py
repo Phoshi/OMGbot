@@ -3,12 +3,15 @@ import globalv
 import shlex
 import settingsHandler
 def load_plugin(input, loadAs=""): #Loads a plugin, placing it in it's correct category.
+    print input, loadAs
     state=0
     #arguments=shlex.split(' '.join(input.split()[1:]))
     name=input.split()[0]
     x=__import__(name)
     if loadAs!="":
         name=loadAs
+    else:
+        loadAs = name
     if name in globalv.loadedPlugins:
         state=1
     if name in globalv.loadedRealtime:
@@ -32,7 +35,16 @@ def load_plugin(input, loadAs=""): #Loads a plugin, placing it in it's correct c
         y.__init_db_tables__(name)
     if name not in [x[0] for x in settingsHandler.readSetting("'core-userlevels'", "plugin")]:
         settingsHandler.writeSetting("'core-userlevels'", ["plugin", "level"],[name, str(y.__level__())])
+    globalv.basePlugin[loadAs]=input.split()[0]
     return state
+def rename_plugin(name, newName):
+    if (newName not in globalv.loadedPlugins.keys()):
+        return False
+    if (name not in globalv.basePlugin.keys()):
+        return False
+    unload_plugin(name)
+    load_plugin(globalv.basePlugin[name], newName)
+    return True
 def unload_plugin(name): #Unloads a plugin (A bit dirty, but it works)
     success=1
     if name in globalv.loadedPlugins.keys():
