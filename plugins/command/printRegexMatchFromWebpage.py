@@ -19,6 +19,7 @@ class pluginClass(plugin):
         page=urllib2.urlopen(url.replace('$*$',argument)).read()
         matches=re.findall(regex,page, re.DOTALL)
         try:
+            matches=[re.sub("<br\s?/?>", " ", match) for match in matches]
             matches=[re.sub("<.*?>","",match).replace('\n','').replace('\r','') for match in matches]
             #matches=[re.sub("x3c.*?x3e","",match) for match in matches]
         except Exception as detail:
