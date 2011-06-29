@@ -17,7 +17,7 @@ def createDatabase():
 
     settingsHandler.newTable("alias", "aliasName", "aliasPlugin", "aliasArguments")
     settingsHandler.newTable("'core-userlevels'", "plugin", "level")
-    settingsHandler.newTable("coreIgnorance", "ignorance")
+    settingsHandler.newTable("coreIgnorance", "ignorance", "nickname")
     settingsHandler.newTable("'core-input'", "input", "definition")
     settingsHandler.newTable("'core-expansions'", "trigger", "command")
     settingsHandler.newTable("'core-doNotExpand'", "doNotExpand")
