@@ -12,6 +12,13 @@ class pluginClass(plugin):
     def action(self, complete):
         msg=complete.message()
         pluginBlacklist=["special"]
+        if len(msg.split()) == 1:
+            if msg.split()[0] in globalv.aliasExtensions.keys():
+                if globalv.aliasExtensions[msg.split()[0]]=="":
+                    return ["PRIVMSG $C$ :Alias has no additional arguments"]
+                return ["PRIVMSG $C$ :%s"%globalv.aliasExtensions[msg.split()[0]]]
+            else:
+                return ["PRIVMSG $C$ : Command is not an alias!"]
         if msg.split()[0] in pluginBlacklist and not (isAllowed(complete.userMask())>=getLevel(complete.cmd()[0])):
             msg=["PRIVMSG $C$ :Restricted plugin!"]
         if msg.split()[0] not in globalv.loadedPlugins.keys():
