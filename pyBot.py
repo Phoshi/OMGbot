@@ -207,7 +207,6 @@ if __name__=="__main__":
     #Load plugins and aliases.
     print "Loading plugins..."
     for plugin, loadAs in globalv.pluginList:
-        print plugin, loadAs
         load_plugin(plugin, loadAs)
     print "Loading aliases..."
     for line in settingsHandler.readSetting("alias","aliasName, aliasPlugin, aliasArguments"):

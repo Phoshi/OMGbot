@@ -3,7 +3,6 @@ import globalv
 import shlex
 import settingsHandler
 def load_plugin(input, loadAs=""): #Loads a plugin, placing it in it's correct category.
-    print input, loadAs
     state=0
     #arguments=shlex.split(' '.join(input.split()[1:]))
     name=input.split()[0]
