@@ -83,6 +83,7 @@ def expand(complete):
                 inputString=":%s PRIVMSG %s :%s"%(complete.userMask(), complete.channel(), "!%s"%command)
                 input=formatInput(pluginArguments(inputString))
                 pluginOutput=globalv.loadedPlugins[command.split()[0]].action(input)
+                pluginOutput = [entry for entry in pluginOutput if entry!=""]
                 pluginOutput=map(lambda output:output.split(' :',1)[1], pluginOutput)
                 commandResult=' | '.join(pluginOutput)
             else:
