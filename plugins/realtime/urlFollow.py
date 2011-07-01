@@ -7,6 +7,7 @@ import urllib2
 import xml.sax.saxutils
 import mimetypes
 import time
+import settingsHandler
 def fixXMLEntities(match):
     value=int(match.group()[2:-1])
     return chr(value)
@@ -25,6 +26,8 @@ def parseYoutube(url, pageData):
         domain = re.search("(?P<url>https?://[^/\s]+)", url).group("url")
         return ["PRIVMSG $C$ :Title: %s (at %s)" % (title.decode('utf-8'), domain.decode('utf-8'))]
 
+def doNothing(url, pageData):
+    return [""]
 def parseAdfly(url, pageData):
     realUrl = re.findall("var url = '(.*?)'",pageData)[0]
     Req = urllib2.Request(realUrl,None,{"User-Agent":"Mozilla/5.0 (X11; U; Linux i686) Gecko/20071127 Firefox/2.0.0.11"})
@@ -42,11 +45,24 @@ def parseAdfly(url, pageData):
         return ['PRIVMSG $C$ :Target URL: %s'%fullURL]
 class pluginClass(plugin):
     def __init__(self):
-        self.specialDomains={"http://www.youtube.com":parseYoutube, "http://adf.ly":parseAdfly}
+        self.specialDomains={"http://www.youtube.com":parseYoutube, "http://adf.ly":parseAdfly, "https?://[^.]*.deviantart.com":doNothing}
     def gettype(self):
         return "realtime"
+    def __init_db_tables__(self, name):
+        settingsHandler.newTable(name, "showDomainLink")
+        settingsHandler.writeSetting(name, ["showDomainLink"], ["true"])
+    def getDomainMatch(self, domain):
+        print "Matching",domain
+        for key in self.specialDomains.keys():
+            print "Trying",key
+            if re.match(key, domain)!=None:
+                print "Matched",key
+                return key
+        print "No match"
+        return False
     def action(self, complete):
         complete=complete.complete()[1:].split(' :',1)
+        showDomain = True if settingsHandler.readSetting("urlFollow", "showDomainLink")=="true" else False
         if len(complete[0].split())>2:
             if complete[0].split()[1]=="PRIVMSG":
                 msg=complete[1]
@@ -77,17 +93,17 @@ class pluginClass(plugin):
                             print detail
                             if str(detail)!="<urlopen error [Errno -2] Name or service not known>":
                                 return ["PRIVMSG $C$ :URLFollow Error: "+str(detail)]
-                        if domain not in self.specialDomains:
+                        if not self.getDomainMatch(domain):
                             title=re.findall("<\s*title\s*>(.*?)</title\s*>", page, re.I)
                             if len(title)>0:
                                 title=title[0]
                                 title=re.sub("\s\s+", " ", title).strip()
-                                return ['PRIVMSG $C$ :Title: '+title.decode('utf-8')+ ' (at '+domain.decode('utf-8')+')']
+                                return ['PRIVMSG $C$ :Title: '+title.decode('utf-8')+ (' (at '+domain.decode('utf-8')+')' if showDomain else "")]
                             else:
                                 if url!=fullURL:
                                     return ['PRIVMSG $C$ :Target URL: %s'%fullURL]
                         else:
-                            return self.specialDomains[domain](url, page)
+                            return self.specialDomains[self.getDomainMatch(domain)](url, page)
                     except Exception as detail:
                         print "Exception:",detail
         return [""]
