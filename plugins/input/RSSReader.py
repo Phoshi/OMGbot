@@ -71,7 +71,7 @@ class asyncInput(object):
                             iterateBack+=1
                         latestFeedItem[feedName]=newFeedItem
                         for item in newItems:
-                            Queue.put("#PRIVMSG "+channel+" :\x0312"+feedNames[feedName]+"\x03:\x0311 "+item[1]+"\x03 (at \x0312"+(item[0] if len(item[0])<20 else bitly(item[0]))+"\x03)\r\n")
+                            Queue.put("#PRIVMSG "+channel+" :\x02"+feedNames[feedName]+"\x02: "+item[1]+" (at \x02"+(item[0] if len(item[0])<20 else bitly(item[0]))+"\x02)\r\n")
                         if checkFrequency>0:
                             checkFrequency-=len(newItems)
                             checkFrequency=0 if checkFrequency<0 else checkFrequency
