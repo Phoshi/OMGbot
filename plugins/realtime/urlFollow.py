@@ -5,6 +5,7 @@ import re
 import urllib
 import urllib2
 import xml.sax.saxutils
+from bitlyServ import bitly
 import mimetypes
 import time
 import settingsHandler
@@ -43,9 +44,28 @@ def parseAdfly(url, pageData):
         return ['PRIVMSG $C$ :Title: '+title.decode('utf-8')+ ' (at '+domain.decode('utf-8')+')']
     else:
         return ['PRIVMSG $C$ :Target URL: %s'%fullURL]
+def parsePonibooru(url, pageData):
+    tags = re.findall("value='([^']*)' id='tag_editor'>", pageData)[0]
+    stats = re.findall("<div id='Statisticsleft'>(.*?<)/div>", pageData)[0]
+    print stats
+    id = re.findall("Id:\s([0-9]*)", stats)[0]
+    print id
+    size = re.findall("Size: (.+?)<", stats)[0].strip()
+    print size
+    filesize = re.findall("Filesize: (.+?)<", stats)[0].strip()
+    print filesize
+    source = re.findall("Source: <a href='(.+?)'", stats)
+    if (source != []):
+        source = source[0].strip()
+        if len(source) > 20:
+            source = bitly(source)
+    else:
+        source = ""
+    return ["PRIVMSG $C$ :Image Tags: %s; Dimensions: %s; Filesize: %s; %s"%(tags, size, filesize, "Source: %s;"%source if source!="" else "")]
 class pluginClass(plugin):
     def __init__(self):
-        self.specialDomains={"http://www.youtube.com":parseYoutube, "http://adf.ly":parseAdfly, "https?://[^.]*.deviantart.com":doNothing}
+        self.specialDomains={"http://www.youtube.com":parseYoutube, "http://adf.ly":parseAdfly,
+                "https?://[^.]*.deviantart.com":doNothing, "http://ponibooru.413chan.net":parsePonibooru}
     def gettype(self):
         return "realtime"
     def __init_db_tables__(self, name):
