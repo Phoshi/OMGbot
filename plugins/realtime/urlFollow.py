@@ -96,7 +96,7 @@ class pluginClass(plugin):
                         url=url[0:-1]
                     if msg.split()[0]=="ACTION":
                         return [""]
-                    domain = re.search("(?P<url>https?://[^/\s]+)", msg).group("url")
+                    domain = re.search("(?P<url>https?://[^/\s]+)", url).group("url")
                     isDomain=re.findall("[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}", domain)
                     if isDomain!=[]:
                         return [""]
@@ -107,7 +107,7 @@ class pluginClass(plugin):
                             page=response.read(50000)
                             page=page.replace('\n','')
                             fullURL=response.geturl()
-                            domain = re.search("(?P<url>https?://[^/\s]+)", fullURL).group("url")
+                            #domain = re.search("(?P<url>https?://[^/\s]+)", fullURL).group("url")
 
                         except Exception as detail:
                             print detail
