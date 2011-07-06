@@ -30,10 +30,10 @@ class pluginClass(plugin):
         if complete.complete().split()[1]=="JOIN":
             return ["WHOIS %s"%complete.user()]
         if complete.complete().split()[1] in ["330","307"]:
-            level=settingsHandler.readSetting("autoidentifyd","level",where="nickname='%s'"%complete.complete()[1:].split(':')[0].split()[-1])
+            level=settingsHandler.readSetting("autoidentifyd","level",where="nickname='%s'"%complete.complete()[1:].split(':')[0].split()[3])
             level="1" if level==[] else level
             if (".*!"+globalv.miscVars[0][complete.complete()[1:].split(':')[0].split()[-1]],level) not in globalv.miscVars[2]:
-                globalv.miscVars[2].append((".*!"+globalv.miscVars[0][complete.complete()[1:].split(':')[0].split()[-1]],level))
+                globalv.miscVars[2].append((".*!"+globalv.miscVars[0][complete.complete()[1:].split(':')[0].split()[3]],level))
         elif complete.complete().split()[1]=="353":
             returns=[]
             for name in complete.message().split():
