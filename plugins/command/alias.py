@@ -16,7 +16,7 @@ class pluginClass(plugin):
             if msg.split()[0] in globalv.aliasExtensions.keys():
                 if globalv.aliasExtensions[msg.split()[0]]=="":
                     return ["PRIVMSG $C$ :Alias has no additional arguments"]
-                return ["PRIVMSG $C$ :!%s %s"%(globalv.basePlugin[msg.split()[0]], globalv.aliasExtensions[msg.split()[0]])]
+                return ["PRIVMSG $C$ :!%s %s"%(globalv.basePlugin[msg.split()[0]], globalv.aliasExtensions[msg.split()[0]].strip())]
             else:
                 return ["PRIVMSG $C$ : Command is not an alias!"]
         if msg.split()[0] in pluginBlacklist and not (isAllowed(complete.userMask())>=getLevel(complete.cmd()[0])):
