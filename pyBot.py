@@ -171,6 +171,9 @@ def parse(msg):
                 output=globalv.loadedPlugins[arguments.cmd[0]].disallowed(formatInput(arguments))
                 send(formatOutput(lines,arguments))
         else:
+            verboseAutoComplete = True if settingsHandler.readSetting("coreSettings", "verboseAutoComplete")=="True" else False
+            if not verboseAutoComplete:
+                return
             command=arguments.cmd()[0]
             nearMatches=difflib.get_close_matches(command, globalv.loadedPlugins.keys(), 6, 0.5)
             nearestMatch=difflib.get_close_matches(command, globalv.loadedPlugins.keys(),1,0.6)

@@ -22,6 +22,8 @@ def createDatabase():
     settingsHandler.newTable("'core-expansions'", "trigger", "command")
     settingsHandler.newTable("'core-doNotExpand'", "doNotExpand")
     settingsHandler.newTable("autoidentifyd", "nickname", "level")
+    settingsHandler.newTable("coreSettings", "verboseAutoComplete")
+    settingsHandler.writeSetting("coreSettings", ["verboseAutoComplete"], ["True"])
     settingsHandler.writeSetting("autoidentifyd", ["nickname", "level"], [newOwner, "1000"])
 
 
