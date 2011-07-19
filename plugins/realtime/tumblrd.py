@@ -18,7 +18,9 @@ class pluginClass(plugin):
     def __init__(self):
         self.lastURLs=[]
     def __init_db_tables__(self, name):
-        settingsHandler.newTable("tumblrd","ignore")
+        settingsHandler.newTable("tumblrdIgnores","ignore")
+        settingsHandler.newTable("tumblrd","username", "password")
+
     def action(self, completeargs):
         def makeRequest(reqData, async=True):
             success=False
@@ -34,9 +36,14 @@ class pluginClass(plugin):
                         success=True
                     time.sleep(30)
 
+        if not settingsHandler.tableExists("tumblrd"):
+            settingsHandler.newTable("tumblrd-ignores","ignore")
+            settingsHandler.newTable("tumblrd","username", "password")
         complete=completeargs.complete()[1:].split(' :',1)
         imageFileTypes=[".jpg",".png",".bmp"]
-        ignores=[x[0].lower() for x in settingsHandler.readSettingRaw("tumblrd","ignore")]
+        username = settingsHandler.readSetting("tumblrd", "username")
+        password = settingsHandler.readSetting("tumblrd", "password")
+        ignores=[x[0].lower() for x in settingsHandler.readSettingRaw("tumblrdIgnores","ignore")]
         if completeargs.channel().lower() in ignores or completeargs.user().lower() in ignores:
             return [""]
         if len(complete[0].split())>2:
@@ -52,7 +59,7 @@ class pluginClass(plugin):
                         self.lastURLs.append(url)
                         if len(self.lastURLs)>10:
                             self.lastURLs.pop(0)
-                    logindata={'email':"AHPhoshi@gmail.com", "password":"11235813","tags":','.join((completeargs.channel(),completeargs.user()))}
+                    logindata={'email':username, "password":password,"tags":','.join((completeargs.channel(),completeargs.user()))}
                     if url[-4:].lower() in imageFileTypes:
                         uploaddata={"type":"photo", "source":url}
                     elif url.lower().find("youtube.com/watch")!=-1:

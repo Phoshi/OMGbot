@@ -73,6 +73,7 @@ def newTable(table,*args):
     db.commit()
 def dropTable(table):
     c.execute("DROP TABLE %s" % table)
+    db.commit()
 def closeConnection():
     c.close()
 def openConnection():

@@ -21,6 +21,7 @@ safe_dict['int']=int
 safe_dict['map']=map
 safe_dict['filter']=filter
 safe_dict['zip']=zip
+safe_dict['max']=max
 safe_dict['oct']=oct
 safe_dict['bin']=bin
 safe_dict['len']=len
