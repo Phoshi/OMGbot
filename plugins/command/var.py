@@ -3,6 +3,8 @@ from plugins import plugin
 import globalv
 import pickle
 import os
+from pluginFormatter import formatInput, formatOutput
+from pluginArguments import pluginArguments
 from securityHandler import isAllowed
 from userlevelHandler import getLevel
 class pluginClass(plugin):
@@ -13,11 +15,14 @@ class pluginClass(plugin):
         if len(msg)>1:
             if isAllowed(complete.userMask())>=getLevel(complete.cmd()[0]):
                 try:
-                    globalv.variables[msg[0]]=eval(' '.join(msg[1:]),{},{})
+                    calcInput=":%s PRIVMSG %s :!%s %s"%(complete.userMask(),complete.channel(),"calculate", ' '.join(msg[1:]))
+                    inputObj=formatInput(pluginArguments(calcInput))
+                    output=':'.join(globalv.loadedPlugins["calculate"].action(inputObj)[0].split(':')[1:])
+                    globalv.variables[msg[0]]=str(output)
                     with open(os.path.join("config","variables"),'w') as file:
                         pickle.dump(globalv.variables,file,pickle.HIGHEST_PROTOCOL)
                 except Exception as detail:
-                    return ["PRIVMSG $C$ :Variable setting failure with expression %s: %s"%(' '.join(msg[1:]), detail)]
+                    return ["PRIVMSG $C$ :Variable setting failure with expression !var %s: %s"%(complete.message(), detail)]
 
         else:
             if msg[0] in globalv.variables.keys():

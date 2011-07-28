@@ -1,69 +1,63 @@
 # -*- coding: utf-8 -*-
 from plugins import plugin
 from datetime import datetime
+from securityHandler import isAllowed
 import globalv
 import pickle
 import os
 import difflib
 
-def daysTill(date):
-    now=datetime.now()
-    now = now.replace(hour=10)
-    date = date.replace(hour=11)
+def days_till(date):
+    now = datetime.now()
+    now = now.replace(hour = 10)
+    date = date.replace(hour = 11)
     
     if date.year == 1900:
         if date.month > now.month:
-            date=date.replace(year=now.year)
+            date = date.replace(year = now.year)
         elif date.month < now.month:
-            date=date.replace(year=now.year+1)
+            date = date.replace(year = now.year+1)
         else:
             if date.day > now.day:
-                date=date.replace(year=now.year)
+                date = date.replace(year = now.year)
             elif date.day < now.day:
-                date=date.replace(year=now.year+1)
+                date = date.replace(year = now.year+1)
             else:
                 return 0
-    return (date-now).days
+    return (date - now).days
 
-def parseDate(date):
-    aa = monthName(date.month)+" "+str(date.day)
-    if date.day%10==1 and date.day!=11:
-        aa+="st"
-    elif date.day%10==2 and date.day!=12:
-        aa+="nd"
-    elif date.day%10==3 and date.day!=13:
-        aa+="rd"
+def parse_date(date):
+    if date.year != 1900:
+        parsed = date.strftime("%B %d{S} %Y")
     else:
-        aa+="th"
-    if date.year!=1900:
-        aa+=" "+str(date.year)
-    return aa
+        parsed = date.strftime("%B %d{S}")
 
-def monthName(month):
-    return ["","January","February","March","April","May","June","July","August","September","October","November","December",][month]
+    day = date.day
+    suffix = 'th' if 11 <= day <= 13 else {1:'st',2:'nd',3:'rd'}.get(day % 10, 'th')
 
-def getDateFromString(eventdate,formats):
-    eventdate=eventdate.replace("gust","____")
-    eventdate=eventdate.replace("st","").replace("nd","").replace("rd","").replace("th","").replace("____","gust")
-            
-    validDate=False
+    return parsed.replace("{S}", suffix)
+
+def interpret_date(eventdate, formats):
+    eventdate = eventdate.replace("gust","____").replace("st","").replace("nd","").replace("rd","").replace("th","").replace("____","gust")
+
     for dformat in formats:
         try:
             newdate = datetime.strptime(eventdate, dformat)
-            validDate=True
-            break
+            return newdate
         except:
-            validDate=False
-    if not validDate:
-        return False
-    return newdate
+            pass
+    return None
 
-def compareEvent(e1, e2):
-    return daysTill(e1[1])-daysTill(e2[1])
+def remove_keys_lower(d, key):
+    to_remove = []
+    for e in d:
+        if e.lower() == key:
+            to_remove.append(e)
+    for e in to_remove:
+        del d[e]
 
 class pluginClass(plugin):
     def __init__(self):
-        self.events = []
         self.formats = [
             "%Y-%m-%d",    #2017-03-31
             "%B %d, %Y",   #March 31, 2017
@@ -75,95 +69,137 @@ class pluginClass(plugin):
     def gettype(self):
         return "command"
     
-    def till(self,date):
-        eventname=date
+    def output_remaining_days(self, date, events, events_lower):
+        eventname_lower = date.lower()
+        eventname = date
         
-        eventExists = False
-        for x in self.events:
-            if x[0]==eventname:
-                dd = daysTill(x[1])
-                eventExists = True
-                break
-
-        if not eventExists:
-            newdate=getDateFromString(eventname,self.formats)
+        event_exists = False
+        if eventname_lower in events_lower:
+            delta_days = days_till(events_lower[eventname_lower])
+            for event in events:
+                if event.lower() == eventname_lower:
+                    eventname = event
+                    break
+            event_exists = True
+        else:
+            newdate = interpret_date(eventname, self.formats)
             if newdate:
-                eventExists = True
-                dd=daysTill(newdate)
+                event_exists = True
+                delta_days = days_till(newdate)
 
-        if not eventExists:
-            response = ["PRIVMSG $C$ :"+eventname+" has not been set as an event yet."]
-            close_matches = difflib.get_close_matches(eventname, [x[0] for x in self.events])
+        if not event_exists:
+            response = ["PRIVMSG $C$ :%s has not been set as an event yet." % eventname]
+            close_matches = difflib.get_close_matches(eventname, events)
             if len(close_matches) > 0:
                 response.append("PRIVMSG $C$ :Did you mean: " + ', '.join(close_matches))
             return response
             
-        if dd==0:
-            return ["PRIVMSG $C$ :Today it's "+eventname+"!"]
-        elif dd<0:
-            return ["PRIVMSG $C$ :"+eventname+" happened "+str(-dd)+" days ago."]
+        if delta_days == 0:
+            return ["PRIVMSG $C$ :Today it's %s!" % eventname]
+        elif delta_days < 0:
+            return ["PRIVMSG $C$ :%s happened %d days ago." % (eventname, -delta_days)]
         else:
-            return ["PRIVMSG $C$ :"+str(dd)+" days till "+eventname]
+            return ["PRIVMSG $C$ :%d days till %s" % (delta_days, eventname)]
         
     def action(self, complete):
-        fileName="events-%s"%complete.cmd()[0]
-        filePath=os.path.join("config",fileName)
-        if os.path.exists(filePath):
-            with open(filePath) as eventFile:
-                self.events=pickle.load(eventFile)
-        s=complete.message().split()
-        if len(s)<1:
+        print complete
+        file_name = "events-%s"%complete.cmd()[0]
+        file_path = os.path.join("config",file_name)
+
+        events = {}
+        
+        if os.path.exists(file_path):
+            with open(file_path) as event_file:
+                events = dict(pickle.load(event_file))
+
+        events_lower = dict(map(lambda (key,val): (key.lower(),val), events.items()))
+                
+        s = complete.message().split()
+
+        command = s[0]
+        
+        if len(s) < 1:
             return ["PRIVMSG $C$ :Invalid parameters"]
-        if s[0]=="upcoming":
-            upcoming = sorted([x for x in self.events if daysTill(x[1])>0],compareEvent)
+        
+        if command == "upcoming":
+            upcoming = sorted([(event, date) for event, date in events.items() if days_till(date)>0], key = lambda (event, date): days_till(date))
+
             aa = "Upcoming: "
+
             for event in upcoming[:5]:
-                aa += event[0] + " at " + parseDate(event[1]) + "; "
+                aa += event[0] + " on " + parse_date(event[1]) + "; "
                 
             return ["PRIVMSG $C$ :"+aa]
-        if s[0]=="till":
-            return self.till(' '.join(s[1:]))
-        if s[0]=="set" or s[0]=="override":
+        
+        if command == "till":
+            return self.output_remaining_days(' '.join(s[1:]), events, events_lower)
+        
+        if command == "set" or command == "override":
             if not "as" in s:
-                return ["PRIVMSG $C$ :Invalid usage; use: !countdown " + s[0] + " [Event name] as [Date]"]
-            asPos=s.index("as")
-            eventname=' '.join(s[1:asPos])
-            ddate=' '.join(s[asPos+1:])
+                return ["PRIVMSG $C$ :Invalid usage; use: !countdown %s [Event name] as [Date]" % command]
+                            
+            split_pos = s.index("as")
+            eventname = ' '.join(s[1:split_pos])
+            ddate = ' '.join(s[split_pos+1:])
 
-            eventFound = False
+            eventname_lower = eventname.lower()
+
+            if interpret_date(eventname, self.formats):
+                return ["PRIVMSG $C$ :You are not allowed to set dates as event names."]
+
+            newdate = interpret_date(ddate, self.formats)
+
+            if eventname_lower in events_lower:
+                if command == "set":
+                    current_date = parse_date(events_lower[eventname_lower])
+                    
+                    response = ["PRIVMSG $C$ :That event has already been set at %s." % current_date]
+                    if interpret_date(current_date, self.formats) != newdate:
+                        response += ["Use \"!countdown override %s as %s\" to override" % (eventname, ddate)]
+                    return response
+            elif command == "override":
+                response = ["PRIVMSG $C$ :%s has not been set as an event yet." % eventname]
+                close_matches = difflib.get_close_matches(eventname, events)
+                if len(close_matches) > 0:
+                    response.append("PRIVMSG $C$ :Did you mean: " + ', '.join(close_matches))
+                return response
+                    
+            if not newdate:
+                return ["PRIVMSG $C$ :Invalid date format. Valid date formats: YYYY-mm-dd, Month dd(th)(,) (YYYY), dd Month"]
             
-            for x in self.events:
-                if x[0]==eventname:
-                    if s[0]=="set":
-                        return ["PRIVMSG $C$ :That event has already been set at " + parseDate(x[1]) + ". Use <!countdown override " + eventname + " as " + ddate + "> to override"]
-                    else:
-                        eventFound = True
+            remove_keys_lower(events, eventname_lower)
+            events[eventname] = newdate
+                        
+            with open(file_path,"w") as event_file:
+                pickle.dump(events, event_file)
 
-            if not eventFound and s[0]=="override":
-                response = ["PRIVMSG $C$ :"+eventname+" has not been set as an event yet."]
-                close_matches = difflib.get_close_matches(eventname, [x[0] for x in self.events])
+            return ["PRIVMSG $C$ :%s successfully %s!" % (eventname, "added" if command == "set" else "updated")]
+
+        if command == "remove":
+            if isAllowed(complete.userMask()) < 150:
+                return ["PRIVMSG $C$ :You don't have the privileges to remove events."]
+            
+            eventname = ' '.join(s[1:])
+            eventname_lower = eventname.lower()
+
+            if eventname_lower not in events_lower:
+                response = ["PRIVMSG $C$ :%s has not been set as an event." % eventname]
+                close_matches = difflib.get_close_matches(eventname, events)
                 if len(close_matches) > 0:
                     response.append("PRIVMSG $C$ :Did you mean: " + ', '.join(close_matches))
                 return response
 
-            newdate=getDateFromString(ddate,self.formats)
-                    
-            if newdate:
-                if s[0]=="set":
-                    self.events.append([eventname,newdate])
-                else:
-                    for x in range(len(self.events)):
-                        if self.events[x][0]==eventname:
-                            self.events[x][1]=newdate
-                            
-                with open(filePath,"w") as eventFile:
-                    pickle.dump(self.events,eventFile)
-                return ["PRIVMSG $C$ :"+eventname+" successfully added!"]
-            else:
-                return ["PRIVMSG $C$ :Invalid date format."]
-        else:
-            return self.till(' '.join(s[0:]))
+            remove_keys_lower(events, eventname_lower)
 
-        return ["PRIVMSG $C$ :Invalid Parameters"]
+            with open(file_path,"w") as event_file:
+                pickle.dump(events, event_file)
+                
+            return ["PRIVMSG $C$ :Event successfully removed!"]
+
+        return self.output_remaining_days(' '.join(s[0:]), events, events_lower)
+
     def describe(self, complete):
-        return ["PRIVMSG $C$ :I am the !countdown module","PRIVMSG $C$ :Usage:","PRIVMSG $C$ :!countdown set [Event name] as [Date]","PRIVMSG $C$ :!countdown (till) [Event name]"]
+        return ["PRIVMSG $C$ :I am the !countdown module",
+                "PRIVMSG $C$ :Usage:",
+                "PRIVMSG $C$ :!countdown set [Event name] as [Date]",
+                "PRIVMSG $C$ :!countdown (till) [Event name]"]

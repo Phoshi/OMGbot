@@ -29,7 +29,7 @@ class pluginClass(plugin):
                 arguments=pluginArguments(complete.complete())
                 print "======", arguments.complete()
                 firstBit=arguments.complete().split(' :')[0]
-                arguments.setComplete(":"+firstBit+" :"+globalv.commandCharacter+plugin+" "+args)
+                arguments.setComplete(firstBit+" :"+globalv.commandCharacter+plugin+" "+args)
                 arguments=formatInput(arguments)
                 pluginOutput=globalv.loadedPlugins[plugin].action(arguments)
                 print pluginOutput

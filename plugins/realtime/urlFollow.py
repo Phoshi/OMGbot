@@ -47,13 +47,9 @@ def parseAdfly(url, pageData):
 def parsePonibooru(url, pageData):
     tags = re.findall("value='([^']*)' id='tag_editor'>", pageData)[0]
     stats = re.findall("<div id='Statisticsleft'>(.*?<)/div>", pageData)[0]
-    print stats
     id = re.findall("Id:\s([0-9]*)", stats)[0]
-    print id
     size = re.findall("Size: (.+?)<", stats)[0].strip()
-    print size
     filesize = re.findall("Filesize: (.+?)<", stats)[0].strip()
-    print filesize
     source = re.findall("Source: <a href='(.+?)'", stats)
     if (source != []):
         source = source[0].strip()
@@ -62,10 +58,17 @@ def parsePonibooru(url, pageData):
     else:
         source = ""
     return ["PRIVMSG $C$ :Image Tags: %s; Dimensions: %s; Filesize: %s; %s"%(tags, size, filesize, "Source: %s;"%source if source!="" else "")]
+def parseBronibooru(url, pageData):
+    tags = re.findall('/post/index\?tags=([^"]*)', pageData)
+    numTags = len(tags)
+    tags = ', '.join(tags[:15])
+    more="" if numTags==len(tags) else " (%s tags ommitted)"%(numTags -15)
+    return ["PRIVMSG $C$ :Image Tags: %s%s"%(tags, more)]
 class pluginClass(plugin):
     def __init__(self):
         self.specialDomains={"http://www.youtube.com":parseYoutube, "http://adf.ly":parseAdfly,
-                "https?://[^.]*.deviantart.com":doNothing, "http://ponibooru.413chan.net":parsePonibooru}
+                "https?://[^.]*.deviantart.com":doNothing, "http://ponibooru.413chan.net":parsePonibooru, "http://bronibooru.mlponies.com":parseBronibooru,
+                "http://mylittlefacewhen.com":doNothing, "http://mlfw.info":doNothing}
     def gettype(self):
         return "realtime"
     def __init_db_tables__(self, name):
