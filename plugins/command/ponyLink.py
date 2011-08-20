@@ -79,13 +79,14 @@ class Site:
 
 def getSiteList(explicit = False):
     sites = []
+    bestPonyDict = {"best_pony":"twilight_sparkle"}
     ponibooruImageRegexDict = {"tags":r"name='tag_edit__tags' value='(.*?)'",
             "dimensions":r"<br>Size: (\d+x\d+)",
             "source":r"<br>Source: <a href='(.*?)'>"}
     ponibooruDefaultTags = []
     if (explicit):
         ponibooruDefaultTags.append("rating=e")
-    ponibooru = Site("Ponibooru", "http://ponibooru.413chan.net/post/list/%s/1", "<span class=\"thumb\"><a href='(.*?)'>", ponibooruDefaultTags, ponibooruImageRegexDict)
+    ponibooru = Site("Ponibooru", "http://ponibooru.413chan.net/post/list/%s/1", "<span class=\"thumb\"><a href='(.*?)'>", ponibooruDefaultTags, ponibooruImageRegexDict, bestPonyDict)
     sites.append(ponibooru)
 
     E621TranslationDict = {"rainbow_dash":"rainbow_dash_(mlp)",
@@ -93,7 +94,11 @@ def getSiteList(explicit = False):
             "twilight_sparkle":"twilight_sparkle_(mlp)",
             "pinkie_pie":"pinkie_pie_(mlp)",
             "fluttershy":"fluttershy_(mlp)",
-            "rarity":"rarity_(mlp)"}
+            "rarity":"rarity_(mlp)",
+            "scootaloo":"scootaloo_(mlp)",
+            "sweetie_belle":"sweetie_belle_(mlp)",
+            "applebloom":"applebloom_(mlp)",
+            "best_pony":"twilight_sparkle_(mlp)"}
 
     E621ImageRegexDict = {"tags":r"<title>(.*?)</title>"}
     E621DefaultTags = ["friendship_is_magic"]
@@ -106,10 +111,14 @@ def getSiteList(explicit = False):
 
     if (explicit):
         r34ImageRegexDict = {"tags":"<a class='tag_name' href='.*?'>(.*?)</a>"}
-        FiveOhTwoBadGateway = Site("R34", "http://rule34.paheal.net/post/list/%s/1", r"href='(/post/view/.*?)'", ["friendship_is_magic"], r34ImageRegexDict)
+        FiveOhTwoBadGateway = Site("R34", "http://rule34.paheal.net/post/list/%s/1", r"href='(/post/view/.*?)'", ["friendship_is_magic"], r34ImageRegexDict, bestPonyDict)
         sites.append(FiveOhTwoBadGateway)
 
 
+    if (not explicit):
+        bronibooruImageRegexDict = {"tags":"<title>(.*?)</title>"}
+        bronibooru = Site("Bronibooru", "http://bronibooru.mlponies.com/post?tags=%s&searchDefault=Search",  r"href=\"(/post/show/.*?)\"", [], bronibooruImageRegexDict, bestPonyDict)
+        sites.append(bronibooru)
     return sites
 
 
