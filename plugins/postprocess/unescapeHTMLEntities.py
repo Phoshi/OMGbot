@@ -15,9 +15,9 @@ class pluginClass(plugin):
                     # character reference
                     try:
                         if text[:3] == "&#x":
-                            return unichr(int(text[3:-1], 16))
+                            return repr(unichr(int(text[3:-1], 16)))[2:-1]
                         else:
-                            return unichr(int(text[2:-1]))
+                            return repr(unichr(int(text[2:-1])))[2:-1]
                     except ValueError:
                         pass
                 elif text[:4]=="x26#":
