@@ -36,9 +36,8 @@ class pluginClass(plugin):
                         success=True
                     time.sleep(30)
 
-        if not settingsHandler.tableExists("tumblrd"):
-            settingsHandler.newTable("tumblrd-ignores","ignore")
-            settingsHandler.newTable("tumblrd","username", "password")
+        if not settingsHandler.tableExists("tumblrdIgnores"):
+            settingsHandler.newTable("tumblrdIgnores","ignore")
         complete=completeargs.complete()[1:].split(' :',1)
         imageFileTypes=[".jpg",".png",".bmp"]
         username = settingsHandler.readSetting("tumblrd", "username")
