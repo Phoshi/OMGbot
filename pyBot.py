@@ -196,10 +196,11 @@ def parse(msg):
                 constructArguments[1]=' '.join(commands)
                 newArguments=':'+' :'.join(constructArguments)
                 parse(newArguments)
-                if len(nearMatches)>1:
-                    returns=["PRIVMSG $C$ :(Command name auto-corrected from %s to %s [Other possibilities were: %s])"%(arguments.cmd()[0], nearestMatch[0], ', '.join(nearMatches[1:]))]
-                else:
-                    returns=["PRIVMSG $C$ :(Command name auto-corrected from %s to %s)"%(arguments.cmd()[0], nearestMatch[0])]
+                if (arguments.cmd()[0].lower()!=nearestMatch[0].lower()):
+                    if len(nearMatches)>1:
+                        returns=["PRIVMSG $C$ :(Command name auto-corrected from %s to %s [Other possibilities were: %s])"%(arguments.cmd()[0], nearestMatch[0], ', '.join(nearMatches[1:]))]
+                    else:
+                        returns=["PRIVMSG $C$ :(Command name auto-corrected from %s to %s)"%(arguments.cmd()[0], nearestMatch[0])]
 
 
 
