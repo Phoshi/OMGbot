@@ -28,6 +28,7 @@ class pluginClass(plugin):
                 return ["PRIVMSG $C$ :Plugin set to autoload"]
             else:
                 settingsHandler.deleteSetting("coreAutoLoad", "loadAs", msg)
+                return ["PRIVMSG $C$ :Plugin no longer autoloading"]
         return ["PRIVMSG $C$ :You do not have the required access rights!"]
     def describe(self, complete):
         return ["PRIVMSG $C$ :I am the !autoload module","PRIVMSG $C$ :Usage:","PRIVMSG $C$ :!autoload [plugin] [on/off]"]
