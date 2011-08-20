@@ -63,7 +63,9 @@ def parseBronibooru(url, pageData):
     numTags = len(tags)
     tags = ', '.join(tags[:15])
     more="" if numTags==len(tags) else " (%s tags ommitted)"%(numTags -15)
-    return ["PRIVMSG $C$ :Image Tags: %s%s"%(tags, more)]
+    if (len(tags)>0):
+        return ["PRIVMSG $C$ :Image Tags: %s%s"%(tags, more)]
+    return [""]
 class pluginClass(plugin):
     def __init__(self):
         self.specialDomains={"http://www.youtube.com":parseYoutube, "http://adf.ly":parseAdfly,
