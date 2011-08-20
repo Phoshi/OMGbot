@@ -47,7 +47,7 @@ class pluginClass(plugin):
             elif argument.lower()=="hideurls":
                 hideUrls = True
             else:
-                userPrint.append(argument)
+                userPrint.append(argument.lower())
                 print "Got User"
         now=time.gmtime()
         year=now[0]
@@ -69,7 +69,7 @@ class pluginClass(plugin):
                     ctime=ctime[0]
                     dtime=datetime.datetime(year,cmonth, cday, int(ctime.split(':')[0]), int(ctime.split(':')[1]))
                     try:
-                        lineUser=line.split('*')[1].strip()
+                        lineUser=line.split('*')[1].strip().lower()
                     except Exception as detail:
                         lineUser=""
                     if dtime>=fromTime and (lineUser in userPrint or userPrint==[]):
