@@ -56,6 +56,8 @@ def getArguments(string, depth=0, startIndex=0):
                 start=-1
                 end=-1
                 continue
+        if (start==-1):
+            continue
         if letter==argumentCharacter[0] and not hasArguments:
             hasArguments=True
             commandName=string[start+1:index]
