@@ -33,6 +33,8 @@ class pluginClass(plugin):
             msgType=sender[1]
             ttime=time.gmtime()
             message=""
+            if not os.path.exists("logs"):
+                os.makedirs("logs")
             if os.path.exists(os.path.join("logs","LogFile - "+channel+"-"+str(ttime[0]) + "-" + str(ttime[7]))):
                 file=open(os.path.join("logs","LogFile - "+channel.lower()+"-"+str(ttime[0]) + "-" + str(ttime[7])),"a")
             else:

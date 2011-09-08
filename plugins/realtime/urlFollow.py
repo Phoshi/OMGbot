@@ -68,7 +68,7 @@ def parseBronibooru(url, pageData):
     return [""]
 class pluginClass(plugin):
     def __init__(self):
-        self.specialDomains={"http://www.youtube.com":parseYoutube, "http://adf.ly":parseAdfly,
+        self.specialDomains={"http://www.asdasdyoutube.com":parseYoutube, "http://adf.ly":parseAdfly,
                 "https?://[^.]*.deviantart.com":doNothing, "http://ponibooru.413chan.net":parsePonibooru, "http://bronibooru.mlponies.com":parseBronibooru,
                 "http://mylittlefacewhen.com":doNothing, "http://mlfw.info":doNothing}
     def gettype(self):

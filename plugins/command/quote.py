@@ -123,7 +123,7 @@ class pluginClass(plugin):
                 searchFor=msg
 
             for index, line in lines:
-                if line.lower().find(searchFor)!=-1:
+                if line.lower().find(searchFor.lower())!=-1:
                     returner=[]
                     returner.append("PRIVMSG $C$ :Quote #%s of %s:"%(index+1, len(lines)-1))
                     for l in line.split('\n'):

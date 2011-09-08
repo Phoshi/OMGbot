@@ -98,6 +98,7 @@ def getSiteList(explicit = False):
             "scootaloo":"scootaloo_(mlp)",
             "sweetie_belle":"sweetie_belle_(mlp)",
             "applebloom":"applebloom_(mlp)",
+            "gilda":"gilda_(mlp)",
             "best_pony":"twilight_sparkle_(mlp)"}
 
     E621ImageRegexDict = {"tags":r"<title>(.*?)</title>"}
