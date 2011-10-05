@@ -86,7 +86,7 @@ def getSiteList(explicit = False):
     ponibooruDefaultTags = []
     if (explicit):
         ponibooruDefaultTags.append("rating=e")
-    ponibooru = Site("Ponibooru", "http://ponibooru.413chan.net/post/list/%s/1", "<span class=\"thumb\"><a href='(.*?)'>", ponibooruDefaultTags, ponibooruImageRegexDict, bestPonyDict)
+    ponibooru = Site("Ponibooru"+(" \x02NSFW\x02" if explicit else ""), "http://ponibooru.413chan.net/post/list/%s/1", "<span class=\"thumb\"><a href='(.*?)'>", ponibooruDefaultTags, ponibooruImageRegexDict, bestPonyDict)
     sites.append(ponibooru)
 
     E621TranslationDict = {"rainbow_dash":"rainbow_dash_(mlp)",
@@ -107,12 +107,12 @@ def getSiteList(explicit = False):
         E621DefaultTags.append("-rating:explicit")
     else:
         E621DefaultTags.append("rating:explicit")
-    E621 = Site("E621", "http://e621.net/post?tags=%s&searchDefault=Search", r"href=\"(/post/show/.*?)\"", E621DefaultTags, E621ImageRegexDict, E621TranslationDict)
+    E621 = Site("E621"+(" \x02NSFW\x02" if explicit else ""), "http://e621.net/post?tags=%s&searchDefault=Search", r"href=\"(/post/show/.*?)\"", E621DefaultTags, E621ImageRegexDict, E621TranslationDict)
     sites.append(E621)
 
     if (explicit):
         r34ImageRegexDict = {"tags":"<a class='tag_name' href='.*?'>(.*?)</a>"}
-        FiveOhTwoBadGateway = Site("R34", "http://rule34.paheal.net/post/list/%s/1", r"href='(/post/view/.*?)'", ["friendship_is_magic"], r34ImageRegexDict, bestPonyDict)
+        FiveOhTwoBadGateway = Site("R34"+(" \x02NSFW\x02" if explicit else ""), "http://rule34.paheal.net/post/list/%s/1", r"href='(/post/view/.*?)'", ["friendship_is_magic"], r34ImageRegexDict, bestPonyDict)
         sites.append(FiveOhTwoBadGateway)
 
 

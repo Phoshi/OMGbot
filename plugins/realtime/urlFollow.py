@@ -14,7 +14,11 @@ def fixXMLEntities(match):
     return chr(value)
 def parseYoutube(url, pageData):
     if re.findall("watch\?v=", url)!=[]:
-        title=re.findall("<\s*title\s*>.*YouTube -[\s]*(.*?)</title\s*>", pageData, re.I)[0]
+        print "Looking for title..."
+        title=re.findall("<\s*title\s*>[\s]*(.*?)</title\s*>", pageData, re.I)[0]
+        title = title.replace("YouTube","")
+        title = title.strip().strip("-").strip() #I KNOW I'M SORRY I'M SO SO SORRY
+        print "Looking for uploader..."
         uploader = re.findall(r"user/(.*?)\"", pageData, re.I)[0]
         print uploader
         print pageData.find('length_seconds')
@@ -68,7 +72,7 @@ def parseBronibooru(url, pageData):
     return [""]
 class pluginClass(plugin):
     def __init__(self):
-        self.specialDomains={"http://www.asdasdyoutube.com":parseYoutube, "http://adf.ly":parseAdfly,
+        self.specialDomains={"http://www.youtube.com":parseYoutube, "http://adf.ly":parseAdfly,
                 "https?://[^.]*.deviantart.com":doNothing, "http://ponibooru.413chan.net":parsePonibooru, "http://bronibooru.mlponies.com":parseBronibooru,
                 "http://mylittlefacewhen.com":doNothing, "http://mlfw.info":doNothing}
     def gettype(self):
