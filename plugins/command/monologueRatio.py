@@ -87,6 +87,8 @@ class pluginClass(plugin):
         if userWhitelist!=[]:
             userArray=filter(lambda x:x[0] in userWhitelist, userArray)
         toReturn="PRIVMSG $C$ :%s total monologues from the past %s days! Rankings:"%(total, days)
+        if len(userArray) == 0:
+            toReturn+=" Nothing returned!"
         for index in range(1,min(numUsers+1,len(userArray)+1)):
             numLines=userArray[-index][1]
             name=userArray[-index][0]
