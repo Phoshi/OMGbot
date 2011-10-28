@@ -19,6 +19,7 @@ class pluginClass(plugin):
         userBlacklist=[]
         userWhitelist=[]
         nextCommand=""
+        wordSearch="";
         for command in complete.message().split():
             if nextCommand=="":
                 if command=="-days":
@@ -31,8 +32,10 @@ class pluginClass(plugin):
                     nextCommand="blacklist"
                 elif command=="-find":
                     nextCommand="whitelist"
+                elif command=="-search":
+                    nextCommand="search"
                 elif command.startswith('-h'):
-                    return ["PRIVMSG $C$ :Usage: %s%s [-days Number of days to search] [-num Number of users to return] [-channel Channel to search] [-not Users to exclude] [-find Users to return results for]"%(globalv.commandCharacter, complete.cmd()[0])]
+                    return ["PRIVMSG $C$ :Usage: %s%s [-days Number of days to search] [-num Number of users to return] [-channel Channel to search] [-not Users to exclude] [-find Users to return results for] [-search Strings to search for]"%(globalv.commandCharacter, complete.cmd()[0])]
             else:
                 if nextCommand=="days":
                     days=int(command)
@@ -44,6 +47,8 @@ class pluginClass(plugin):
                     userBlacklist=command.split(',')
                 elif nextCommand=="whitelist":
                     userWhitelist=command.split(',')
+                elif nextCommand=="search":
+                    wordSearch+=" "+command
 
                 nextCommand=""
         for offset in xrange(days):
@@ -61,6 +66,13 @@ class pluginClass(plugin):
                 if len(nickname)==0:
                     continue
                 nickname=nickname[0]
+                searches = wordSearch.split(',')
+                foundOne=False
+                for search in searches:
+                    if line.lower().find(search.lower())!=-1:
+                        foundOne=True
+                if not foundOne and len(wordSearch)>0:
+                    continue
                 if nickname in users:
                     users[nickname]+=1
                 else:
@@ -73,6 +85,8 @@ class pluginClass(plugin):
         if userWhitelist!=[]:
             userArray=filter(lambda x:x[0] in userWhitelist, userArray)
         toReturn="PRIVMSG $C$ :%s total lines from the past %s days! Rankings:"%(total, days)
+        if len(userArray) == 0:
+            toReturn+=" Nothing returned!"
         for index in range(1,min(numUsers+1,len(userArray)+1)):
             numLines=userArray[-index][1]
             name=userArray[-index][0]
