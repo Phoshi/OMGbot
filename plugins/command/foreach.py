@@ -12,7 +12,7 @@ class pluginClass(plugin):
     def expand(self, toExpand, toExpandWith):
         expansions = re.findall("\$([0-9]*)\$", toExpand)
         if len(expansions) == 0 and toExpand.find('$*$')==-1:
-            return "%s %s"%(toExpandWith, toExpand)
+            return "%s%s"%(toExpand, toExpandWith)
         for expansion in expansions:
             index = int(expansion)-1
             if len(toExpandWith.split())>index:
