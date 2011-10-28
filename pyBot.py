@@ -92,8 +92,6 @@ def send(msg): #Sends the argument straight to the server
                 globalv.outputQueue.append(starter+msg[800:])
                 appendQueueMessage=True
             msg=msg[:start]
-            if appendQueueMessage:
-                msg+="\x02(More messages in queue - use !more to read)\x02"
         try:
             irc.send(msg.encode('utf-8') + "\r\n") #Yeah, I'm this lazy.
             if msg.split()[0] not in ["JOIN","WHOIS"] and msg.split(':',1)[-1].split()[0] not in ["\x01PING"]:
