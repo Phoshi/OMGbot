@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from plugins import plugin
-from datetime import datetime
+from datetime import datetime, date as datetimedate
 from securityHandler import isAllowed
 import globalv
 import pickle
@@ -27,6 +27,9 @@ def days_till(date):
     return (date - now).days
 
 def parse_date(date):
+    today = datetimedate.today()
+    if date.year == today.year and date.month == today.month and date.day == today.day:
+        return "today"
     if date.year != 1900:
         parsed = date.strftime("%B %d{S} %Y")
     else:
@@ -116,13 +119,13 @@ class pluginClass(plugin):
                 
         s = complete.message().split()
 
-        command = s[0]
+        if len(s) > 0:
+            command = s[0]
+        else: 
+            command = ""
         
-        if len(s) < 1:
-            return ["PRIVMSG $C$ :Invalid parameters"]
-        
-        if command == "upcoming":
-            upcoming = sorted([(event, date) for event, date in events.items() if days_till(date)>0], key = lambda (event, date): days_till(date))
+        if command == "upcoming" or command=="":
+            upcoming = sorted([(event, date) for event, date in events.items() if days_till(date)>=0], key = lambda (event, date): days_till(date))
 
             aa = "Upcoming: "
 
