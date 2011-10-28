@@ -54,9 +54,13 @@ class pluginClass(plugin):
                 if (function=="s"):
                     returnNumberNotTotal = True
                 elif (function=="+"):
-                    totalOffset+=argumentToFunction
+                    #totalOffset+=argumentToFunction
+                    rolls.append(argumentToFunction)
+                    originalRolls.append(argumentToFunction)
                 elif (function=="-"):
-                    totalOffset-=argumentToFunction
+                    #totalOffset-=argumentToFunction
+                    rolls.append(-argumentToFunction)
+                    originalRolls.append(-argumentToFunction)
                 elif (function=="S"):
                     forceUseOriginalRoll = True
 
