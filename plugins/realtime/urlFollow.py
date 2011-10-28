@@ -74,7 +74,8 @@ class pluginClass(plugin):
     def __init__(self):
         self.specialDomains={"http://www.youtube.com":parseYoutube, "http://adf.ly":parseAdfly,
                 "https?://[^.]*.deviantart.com":doNothing, "http://ponibooru.413chan.net":parsePonibooru, "http://bronibooru.mlponies.com":parseBronibooru,
-                "http://mylittlefacewhen.com":doNothing, "http://mlfw.info":doNothing}
+                "http://mylittlefacewhen.com":doNothing, "http://mlfw.info":doNothing,
+                "http://.*\.rainbow-da.sh":doNothing, "http://p.0au.de":doNothing}
     def gettype(self):
         return "realtime"
     def __init_db_tables__(self, name):
@@ -90,8 +91,16 @@ class pluginClass(plugin):
         print "No match"
         return False
     def action(self, complete):
-        complete=complete.complete()[1:].split(' :',1)
         showDomain = True if settingsHandler.readSetting("urlFollow", "showDomainLink")=="true" else False
+        if "urlFollowQueue" not in globalv.variables.keys():
+            print "Doing it sync"
+            return self.urlFollow(complete, showDomain)
+        else:
+            print "Doing it async"
+            globalv.variables["urlFollowQueue"].put((complete, self.urlFollow))
+            return [""]
+    def urlFollow(self, complete, showDomain = True):
+        complete=complete.complete()[1:].split(' :',1)
         if len(complete[0].split())>2:
             if complete[0].split()[1]=="PRIVMSG":
                 msg=complete[1]
@@ -100,6 +109,8 @@ class pluginClass(plugin):
                 if msg.find('http://')!=-1 or msg.find('https://')!=-1:
 
                     url = re.search(".*(?P<url>https?://[^\s#]+)", msg).group("url")
+                    if url[-2:]==")$":
+                        url = url[:-2]
                     print url
                     if url[-1]=="":
                         url=url[0:-1]
@@ -111,7 +122,7 @@ class pluginClass(plugin):
                         return [""]
                     try:
                         try:
-                            Req = urllib2.Request(url,None,{"User-Agent":"Mozilla/5.0 (X11; U; Linux i686) Gecko/20071127 Firefox/2.0.0.11"})
+                            Req = urllib2.Request(url,None,{"User-Agent":"Mozilla/5.0 (X11; U; Linux i686) Gecko/20071127 Firefox/2.0.0.11", "From":"AHPhoshi@gmail.com"})
                             response=urllib2.urlopen(Req,None, 15)
                             page=response.read(50000)
                             page=page.replace('\n','')
