@@ -170,19 +170,23 @@ def parse(msg):
                 send(formatOutput(lines,arguments))
         else:
             verboseAutoComplete = True if settingsHandler.readSetting("coreSettings", "verboseAutoComplete")=="True" else False
-            if not verboseAutoComplete:
-                return
             command=arguments.cmd()[0]
             nearMatches=difflib.get_close_matches(command, globalv.loadedPlugins.keys(), 6, 0.5)
             nearestMatch=difflib.get_close_matches(command, globalv.loadedPlugins.keys(),1,0.6)
             commandExists = os.path.exists(os.path.join("plugins","command",command+".py"))
+            returns=[]
             if nearMatches==[]:
                 if not commandExists:
+                    if not verboseAutoComplete:
+                        return
                     returns=["PRIVMSG $C$ :No such command!"]
+
                 else:
                     returns=["PRIVMSG $C$ :Command not loaded!"]
             elif nearestMatch==[]:
                 if not commandExists:
+                    if not verboseAutoComplete:
+                        return
                     returns=["PRIVMSG $C$ :No such command! Did you mean: %s"%', '.join(nearMatches)]
                 else:
                     returns=["PRIVMSG $C$ :Command not loaded! Did you mean: %s"%', '.join(nearMatches)]
@@ -211,7 +215,7 @@ if __name__=="__main__":
     for plugin, loadAs in globalv.pluginList:
         load_plugin(plugin, loadAs)
     print "Loading aliases..."
-    for line in settingsHandler.readSetting("alias","aliasName, aliasPlugin, aliasArguments"):
+    for line in settingsHandler.readSettingRaw("alias","aliasName, aliasPlugin, aliasArguments"):
         load_alias(line[0], ' '.join(line[1:]))
     print "Loading input sources..."
     if settingsHandler.tableExists("'core-input'"):

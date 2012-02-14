@@ -50,12 +50,14 @@ class pluginClass(plugin):
                 returns=', '.join(columns) 
             if mode=="current":
                 results=settingsHandler.readSetting(plugin, setting)
-                results=[x[0] if len(x)==1 and type(x)==tuple else x for x in results] if type(results)==list else results
+                results=[str(x[0]) if len(x)==1 and type(x)==tuple else x for x in results] if type(results)==list else str(results)
                 results=', '.join(results) if type(results)==list else results
                 returns=results
             if mode=="commit":
                 settingsHandler.db.commit()
                 returns="Committed!"
+            if mode=="copy":
+                settingsHandler.executeQuery("INSERT INTO '%s' SELECT * FROM '%s'"%(msg.split()))
             if mode=="query":
                 results=settingsHandler.executeQuery(' '.join(msg.split()[1:]))
                 if results!=[]:

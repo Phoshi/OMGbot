@@ -5,6 +5,7 @@ import settingsHandler
 import time
 from securityHandler import isAllowed
 from userlevelHandler import getLevel
+import re
 class pluginClass(plugin):
     def gettype(self):
         return "command"
@@ -34,10 +35,10 @@ class pluginClass(plugin):
                 senderString="sender=='%s' AND "%complete.user()
                 if isAllowed(complete.userMask())>getLevel(complete.user()):
                     senderString=""
-                settingsHandler.updateSetting("laterd","sent", "'2'", where="recipient='%s' and sent='0' and sender='%s'"%(msg.split()[1].lower(), complete.user()))
+                settingsHandler.updateSetting("laterd","sent", "'2'", where="recipient=\"%s\" and sent='0' and sender='%s'"%(re.escape(msg.split()[1].lower()), complete.user()))
                 return ["PRIVMSG $C$ :Later successfully removed!"]
             except Exception as detail:
-                return ["PRIVMSG $C$ :Later not removed:"+str(detail)]
+                return ["PRIVMSG $C$ :Later not removed"]
         else:
             msg=msg.replace('::',' ')
             if msg.split()[0]=="secret":
@@ -50,7 +51,7 @@ class pluginClass(plugin):
                 channels.append(msg.split()[0])
                 msg=' '.join(msg.split()[1:])
             channel='|'.join(channels)
-            recipients=msg.split()[0].lower().split(',')
+            recipients=list(set(msg.split()[0].lower().split(',')))
             sender=complete.user()
             senderMask=complete.userMask()
             timestamp=str(int(time.time()))

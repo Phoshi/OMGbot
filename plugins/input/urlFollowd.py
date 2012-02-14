@@ -13,7 +13,7 @@ class asyncInput(object):
         running = True
         self.Queue=outputQueue
         urlQueue = Queue.Queue()
-        globalv.variables["urlFollowQueue"] = urlQueue
+        globalv.communication["urlFollowQueue"] = urlQueue
 
         while running:
             while not inputQueue.empty():
@@ -30,7 +30,7 @@ class asyncInput(object):
                 print "urlFollowd failued:",complete.complete()
 
             
-        del globalv.variables["urlFollowQueue"]
+        del globalv.communication["urlFollowQueue"]
     def gettype(self):
         return "input"
     def describe(self, complete):

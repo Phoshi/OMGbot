@@ -4,7 +4,7 @@ import globalv
 import datetime
 import time
 
-datesToCountDownTo = ["2011/10/15 14:00", "2011/10/22 15:00", "2011/11/05 15:00"]
+datesToCountDownTo = ["2012/01/07 15:00", "2012/01/14 15:00", "2012/01/21 15:00", "2012/01/28 15:00", "2012/2/04 15:00"]
 
 times = [("week", 7 * 24 * 60 * 60), ("day", 24 * 60 * 60), ("hour", 60*60), ("minute", 60)]
 class pluginClass(plugin):

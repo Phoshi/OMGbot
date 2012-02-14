@@ -49,6 +49,7 @@ class pluginClass(plugin):
                     userWhitelist=command.split(',')
                 elif nextCommand=="search":
                     wordSearch+=" "+command
+                    continue
 
                 nextCommand=""
         for offset in xrange(days):
@@ -59,7 +60,8 @@ class pluginClass(plugin):
                 year-=1
             path=os.path.join("logs","LogFile - "+channel+"-"+str(year)+"-"+str(day))
             if not os.path.exists(path):
-                continue
+                print path
+                break
             data=open(path).readlines()
             for line in data:
                 nickname=re.findall("^\[.*?\]\s\*\s([^\s]*)", line)

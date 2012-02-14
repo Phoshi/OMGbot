@@ -31,6 +31,7 @@ loadedInputs={}
 input=inputSystem()
 outputQueue=[]
 basePlugin={}
+communication={}
 from pickle import load
 with open(os.path.join("config","variables")) as file:
     variables=load(file)

@@ -5,13 +5,13 @@ class pluginClass(plugin):
     def gettype(self):
         return "command"
     def action(self, complete):
-        streams = globalv.variables["drawfriendStreams"]
+        streams = globalv.communication["drawfriendStreams"]
         activeStreams = []
         for stream in streams:
             if stream.isLive:
                 activeStreams.append(stream)
 
-        message = "; ".join(["%s: %s"%(stream.getName(), stream.getChannel()) for stream in activeStreams])
+        message = " - ".join(["%s: %s%s"%(stream.getName(), stream.getChannel(), " \x02Thread:\x02 %s"%stream.getThread() if stream.getThread()!="" else "") for stream in activeStreams])
         if message == "":
             message = "Nobody."
         return ["PRIVMSG $C$ :Now Streaming: %s"%message]

@@ -28,15 +28,26 @@ class pluginClass(plugin):
            return ["PRIVMSG $C$ :0"]
 
 
-        elif isAllowed(complete.userMask())>getLevel(complete.cmd()[0]):
-            if msg.split()[0] in [x[0] for x in settingsHandler.readSetting("autoidentifyd","nickname")]:
-                settingsHandler.updateSetting("autoidentifyd","level",str(msg.split()[1]), where="nickname='%s'"%msg.split()[0])
+        elif isAllowed(complete.userMask())>=getLevel(complete.cmd()[0]):
+            nick = msg.split()[0]
+            level = msg.split()[1]
+
+            if nick not in globalv.miscVars[0]:
+                return ["PRIVMSG $C$ :That user does not exist."]
+            
+            if nick in [x[0] for x in settingsHandler.readSetting("autoidentifyd","nickname")]:
+                settingsHandler.updateSetting("autoidentifyd","level",str(level), where="nickname='%s'"%nick)
                 msg="Level updated"
-                globalv.miscVars[2].append((msg.split()[0], msg.split()[1]))
             else:
-                settingsHandler.writeSetting("autoidentifyd",["nickname","level"], [msg.split()[0], msg.split()[1]])
+                settingsHandler.writeSetting("autoidentifyd",["nickname","level"], [nick, level])
                 msg="User Elevated"
-                globalv.miscVars[2].append((msg.split()[0], msg.split()[1]))
+
+            user = '.*!' + globalv.miscVars[0][nick]
+            
+            globalv.miscVars[2] = filter(lambda (x,y): x != user, globalv.miscVars[2])
+            globalv.miscVars[2].append((user, level))
+
+            print globalv.miscVars[2]
         else:
             msg="Only elevated users can do this!"
         return ["PRIVMSG $C$ :"+msg]

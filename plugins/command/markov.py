@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from plugins import plugin
 import os
+import globalv
 
 import re
 
@@ -42,22 +43,25 @@ class pluginClass(plugin):
         return len(includedPhrase) > 0
 
     def tupleToLowerKey(self, t):
-        return tuple(map(lambda a: a.lower(), t))
+        return tuple([x.lower() for x in t])
 
-    def generateMarkovText(self, words, cache):
+    def generateMarkovText(self, lastWords, cache):
+        print 'Generating markov text'
+
+        tuples = cache.keys()
+        
         depth = self.depth
         
-        endMark = self.tupleToLowerKey(words[-depth:])
+        endMark = self.tupleToLowerKey(lastWords)
         
-        resetAtEnd = not endMark in cache
+        resetAtEnd = endMark not in cache
         
-        seed = random.randint(0, len(words)-depth)
-        current = tuple(words[seed:seed+depth])
+        current = random.choice(tuples)
         genWords = []
 
         phrasePos = -2
 
-        self.chainFailure = False
+        chainFailure = False
 
         if len(self.startPhrase) > 0:
             start = self.startPhrase
@@ -66,7 +70,7 @@ class pluginClass(plugin):
             
             endMark2 = self.tupleToLowerKey(self.startPhrase[-depth:])
         
-            self.chainFailure = not endMark2 in cache
+            chainFailure = endMark2 not in cache
 
         while len(genWords) < self.outputLen:
             genWords.append(current[0])
@@ -82,11 +86,10 @@ class pluginClass(plugin):
 
             key = self.tupleToLowerKey(current)
             
-            if (resetAtEnd and key == endMark) or (self.chainFailure and key == endMark2) or (random.randint(0,1) == 0 and self.isSentenceEnd(key[-1][-1])):
+            if (resetAtEnd and key == endMark) or (chainFailure and key == endMark2) or (random.randint(0,1) == 0 and self.isSentenceEnd(key[-1][-1])):
                 genWords.extend(current[1:])
                 
-                seed = random.randint(0, len(words)-depth)
-                current = tuple(words[seed:seed+depth])
+                current = random.choice(tuples)
             else:
                 current = current[1:] + tuple([random.choice(cache[key])])
 
@@ -97,7 +100,7 @@ class pluginClass(plugin):
 
     def parseArgs(self, args):
         self.outputLen = 60
-        self.daysBack = 50
+        self.daysBack = 10
         self.nickFilter = ['*']
         self.startPhrase = []
         self.depth = 2
@@ -137,7 +140,7 @@ class pluginClass(plugin):
                     return ["PRIVMSG $C$ :Invalid arg %s - %s" % (args[i+1], self.usage())]
                 i += 2
             elif args[i] == '-filter':
-                self.nickFilter = args[i+1:]
+                self.nickFilter = [x.lower() for x in args[i+1:]]
                 j = 0
                 while j < len(self.nickFilter):
                     if self.nickFilter[j][0] == '-':
@@ -183,8 +186,7 @@ class pluginClass(plugin):
 
         cache = {}
 
-        re_message = re.compile('\[.+?\] \* (?P<poster>[A-Za-z0-9_-]+) \*? (?P<words>.+)')
-        re_words = re.compile('[^\s]+')
+        re_message = re.compile('\[.+?\] \* (?P<poster>[A-Za-z0-9_\[\]^{}-]+) \*? (?P<words>.+)')
 
         words = []
 
@@ -192,17 +194,21 @@ class pluginClass(plugin):
 
         fileTries = 10
 
-        for delta in range(self.daysBack):
+        print 'Counting words...'
+
+        for delta in xrange(self.daysBack):
             day = today - timedelta(days=delta)
-            doty = int(day.strftime('%j'))
+            doty = int(day.strftime('%j')) #day of the year
             path = os.path.join("logs","LogFile - %s-%d-%d" % (channel, day.year, doty))
+
+            print 'Checking logfile', path
 
             try:
                 with open(path) as log:
                     lines = log.readlines()
             except:
                 print path, 'not found'
-                
+
                 fileTries -= 1
                 if fileTries > 0:
                     continue
@@ -215,13 +221,13 @@ class pluginClass(plugin):
                 message = re_message.search(line)
                 if not message:
                     continue
-                poster = message.group('poster')
-                if poster == 'OMGbot':
+                poster = message.group('poster').lower()
+                if poster == 'omgbot':
                     continue
-                
+
                 ignore = True
                 for f in self.nickFilter:
-                    if fnmatch.fnmatch(poster.lower(), f.lower()):
+                    if fnmatch.fnmatch(poster, f):
                         ignore = False
                         break
                 
@@ -234,41 +240,31 @@ class pluginClass(plugin):
                 if message[-1].isalnum():
                     message += '.'
 
-                line_words = re_words.findall(message)
+                words.extend(message.split())
 
-                log_words.extend(line_words)
-
-            words = log_words + words
-
-        """possibleExtensions = []
-
-        L = len(self.startPhrase)"""
-                        
-        for ws in self.tuples(words):
-            key = self.tupleToLowerKey(ws[:self.depth])
-
-            """for d in range(1, min(self.depth, L+1)):
-                if self.startPhrase[-d:] == ws[0:d]:
-                    possibleExtensions.append(ws[d:])"""
-            
-            if key in cache:
-                cache[key].append(ws[-1])
-            else:
-                try:
-                    cache[key] = [ws[-1]]
-                except Exception as detail:
-                    print detail
-                    print ws[-1]
-                    return ["PRIVMSG $C$ :%s: %s"%(detail, ws[-1])]
-                
-        """if random.randint(0,1) == 0 and possibleExtensions != [] and tuple(self.startPhrase[-self.depth:]) not in cache:
-            self.startPhrase.extend(random.choice(possibleExtensions))
-            print 'adaptation:', self.startPhrase"""
+        print 'Finished counting words.'
+        print 'List contains %d words' % len(words)
 
         if len(words) < self.depth+1:
             return ["PRIVMSG $C$ :Not enough words found."]
 
-        m = self.generateMarkovText(words, cache)
+        print 'Creating mapping...'
+
+        for ws in self.tuples(words):
+            key = self.tupleToLowerKey(ws[:self.depth])
+
+            cache.setdefault(key, []).append(ws[-1])
+
+        print 'Done creating mapping...'
+        print 'Mapping contains %d keys' % len(cache)
+
+        lastWords = words[-self.depth:]
+
+        del words
+
+        m = self.generateMarkovText(lastWords, cache)
+
+        del cache
         
         if not m[0].istitle():
             m = m[0].upper() + m[1:]
@@ -296,9 +292,6 @@ class pluginClass(plugin):
                     endLine = True
 
         output = ["PRIVMSG $C$ :" + markovText]
-
-        if self.chainFailure:
-            print 'Failed to chain starting phrase.'
 
         return output
     

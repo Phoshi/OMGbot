@@ -3,6 +3,8 @@ from plugins import plugin
 import globalv
 import time
 import os
+import fnmatch
+
 class pluginClass(plugin):
     def gettype(self):
         return "command"
@@ -31,10 +33,10 @@ class pluginClass(plugin):
                         if line.find('<')!=-1:
                             line=line.split('<')[1].split()[0]
                     if len(line)==2:
-                        line=line[1].split()[0]
+                        line=line[1].split()[0].strip()
                     else:
-                        line=line[1]
-                    if line.lower().find(msg.lower())!=-1:
+                        line=line[1].strip()
+                    if fnmatch.fnmatch(line.lower(), msg.lower()):
                         print line
                         msgTime=oline.split(']')[0]+"]"
                         nowTime=time.strftime("[%d %b %y %H:%M]")

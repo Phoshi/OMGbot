@@ -57,7 +57,7 @@ class pluginClass(plugin):
                 year-=1
             path=os.path.join("logs","LogFile - "+channel+"-"+str(year)+"-"+str(day))
             if not os.path.exists(path):
-                continue
+                break
             data=open(path).readlines()
 
             for line in data:

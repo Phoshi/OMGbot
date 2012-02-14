@@ -59,3 +59,16 @@ def unload_plugin(name): #Unloads a plugin (A bit dirty, but it works)
     else:
         success=0
     return success
+
+from pluginFormatter import formatInput
+from pluginArguments import pluginArguments
+def run_command(commandString, arguments):
+    pluginIn = ":%s PRIVMSG %s :!%s"%(arguments.userMask(), arguments.channel(), commandString)
+    args = pluginArguments(pluginIn)
+    formatted = formatInput(args)
+
+    pluginToRun = commandString.split()[0]
+
+    output = globalv.loadedPlugins[pluginToRun].action(formatted)
+    return output
+

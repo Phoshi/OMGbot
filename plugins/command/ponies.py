@@ -13,7 +13,10 @@ class pluginClass(plugin):
     def __init__(self):
         cj = cookielib.CookieJar()
         self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
-        r = self.opener.open('http://ponibooru.413chan.net/post/list')
+        try:
+            r = self.opener.open('http://ponibooru.413chan.net/post/list')
+        except:
+            pass
 
         self.recent = []
         

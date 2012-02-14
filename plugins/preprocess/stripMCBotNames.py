@@ -15,7 +15,6 @@ class pluginClass(plugin):
             self.substitutions[str(sub[0].lower())]=str(sub[1])
 
     def action(self, complete):
-        return complete.complete()
         msg=complete.fullMessage()
         if complete.type()!="PRIVMSG":
             return complete.complete()

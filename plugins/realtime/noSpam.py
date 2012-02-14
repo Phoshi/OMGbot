@@ -43,6 +43,8 @@ class pluginClass(plugin):
                                     settingsHandler.writeSetting("coreIgnorance",["ignorance","nickname"],['.*@'+userMask.split('@')[1],user])
                                     self.userlist=[]
                                     return ["PRIVMSG $C$ :Oi, $U$, shut up for christ's sake."]
+                            elif numberOfTimes[user]==int(settingsHandler.readSetting("noSpam","numberLimit")):
+                                return ["PRIVMSG $C$ :Hey, $U$, shut up. One more command and I'm ignoring you."]
                         elif numberOfTimes[user]>=2:
                             self.userlist=[]
         return [""]

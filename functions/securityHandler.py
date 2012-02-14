@@ -4,9 +4,11 @@ def isAllowed(nick):
     try:
         for mask in globalv.miscVars[2]:
             if re.search(mask[0].replace('[','\['), nick, re.I | re.DOTALL)!=None:
-                return int(mask[1])
+                userlevel = mask[1]
+                if type(userlevel) == list:
+                    userlevel = userlevel[0][0]
+                return int(userlevel)
     except: 
-        print "\x07"
         print mask
         print nick
     return 0

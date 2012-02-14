@@ -29,15 +29,13 @@ class pluginClass(plugin):
                 if ignoreControlCharacters:
                     line=re.sub("\x03\d*(,\d*)?","",line)
                     line=line.translate(None,''.join(controlCharacters))
-                line=line.split('*')
-                if len(line)!=1:
-                    if len(line)==2:
-                        line=' '.join(line[1].split()[1:])
-                    else:
-                        line=line[2]
-                    if line.lower().find(msg.lower())!=-1:
-                        if line.strip().startswith(globalv.commandCharacter)==False:
-                            result=oline
+                line = re.sub('\[\d+ \w+ \d+ \d+:\d+\]','',line)
+                if re.match('\s\*\s[^ ]+\s\*\s!last', line):
+                    continue
+                if line.lower().find(msg.lower())!=-1:
+                    if line.strip().startswith(globalv.commandCharacter)==False:
+                        result=oline
+                        
             day-=1
             if day==0:
                 year-=1

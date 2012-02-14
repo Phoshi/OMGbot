@@ -66,6 +66,11 @@ class pluginClass(plugin):
                           ('Vietnamese', 'vi'),
                           ('Welsh', 'cy'),
                           ('Yiddish', 'yi')]
+        self.languages = {}
+        for a,b in self.langTable:
+            self.languages[a] = b
+            self.languages[a.lower()] = b
+            self.languages[b] = a
 
     def gettype(self):
         return "command"
@@ -73,97 +78,85 @@ class pluginClass(plugin):
     def action(self, complete):
         msg=str(complete.message()); #######
 
-        print msg
-
         if (msg == ""):
             return ["PRIVMSG $C$ :Invalid Parameters"]
 
         args = shlex.split(msg)
 
-        if (len(args) != 1 and len(args) != 3 and len(args) != 5):
-            return ["PRIVMSG $C$ :Invalid Parameters (Wrong number of arguments)"]
-
-        langFrom = ""
+        langFrom = "auto"
         langTo = "en"
 
-        if (len(args) >= 3):
-            args[1]=str(args[1])
-            if (args[1] == "to"):
-                langTo=""
-                for x in self.langTable:
-                    if (x[0].lower()==args[2].lower()):
-                        langTo=x[1]
-                        break
-                if (langTo==""):
-                    return ["PRIVMSG $C$ :Cannot translate to " + args[2] + ", sorry!"]
-            elif (args[1] == "from"):
-                langFrom=""
-                for x in self.langTable:
-                    if (x[0].lower()==args[2].lower()):
-                        langFrom=x[1]
-                        break
-                if (langTo==""):
-                    return ["PRIVMSG $C$ :Cannot translate to " + args[2] + ", sorry!"]
+        text = args[0]
+
+        if len(args) >= 3:
+            if args[1] == 'to':
+                try:
+                    langTo = self.languages[args[2].lower()]
+                    if len(langTo) > 2:
+                        raise Exception()
+                except:
+                    return ["PRIVMSG $C$ :Translation failure! :("]
+                if len(args) > 3 and args[3] == 'from':
+                    try:
+                        langFrom = self.languages[args[4].lower()]
+                        if len(langFrom) > 2:
+                            raise Exception()
+                    except:
+                        return ["PRIVMSG $C$ :Translation failure! :("]
+            elif args[1] == 'from':
+                try:
+                    langFrom = self.languages[args[2].lower()]
+                    if len(langFrom) > 2:
+                        raise Exception()
+                except:
+                    return ["PRIVMSG $C$ :Translation failure! :("]
+                if len(args) > 3 and args[3] == 'to':
+                    try:
+                        langTo = self.languages[args[4].lower()]
+                        if len(langTo) > 2:
+                            raise Exception()
+                    except:
+                        return ["PRIVMSG $C$ :Translation failure! :("]
             else:
-                return ["PRIVMSG $C$ :Invalid Parameters (Use double quotes (\") to translate a sentence.)"]
+                text = ' '.join(args)
+        else:
+            text = ' '.join(args)
 
-        if (len(args) == 5):
-            if (args[3] == args[2]):
-                return ["PRIVMSG $C$ :Invalid Parameters (Args 3 and 2 are identical)"]
-            if (args[3] == "to"):
-                langTo=""
-                for x in self.langTable:
-                    if (x[0].lower()==args[4].lower()):
-                        langTo=x[1]
-                        break
-                if (langTo==""):
-                    return ["PRIVMSG $C$ :Cannot translate to " + args[4] + ", sorry!"]
-            elif (args[3] == "from"):
-                langFrom=""
-                for x in self.langTable:
-                    if (x[0].lower()==args[4].lower()):
-                        langFrom=x[1]
-                        break
-                if (langTo==""):
-                    return ["PRIVMSG $C$ :Cannot translate to " + args[4] + ", sorry!"]
-            else:
-                return ["PRIVMSG $C$ :Invalid Parameters (Use double quotes (\") to translate a sentence.)"]
+        query = urllib.urlencode({"text": text})
+        url = "http://translate.google.com/translate_a/t?client=t&%s&hl=en&sl=%s&tl=%s&multires=1&otf=2&ssel=4&tsel=4&sc=1" % (query, langFrom, langTo)
 
-        #text = unicode(args[0], 'utf-8')
-        #query = urllib.urlencode(dict([["q",text.encode('utf-8')]]))
-        query = urllib.urlencode(dict([["q",args[0]]]))
-        url = "http://www.google.com/uds/Gtranslate?callback=google.language.callbacks.id101&context=22&langpair="+langFrom+"|"+langTo+"&key=notsupplied&v=1.0&"+query
-
-        req=urllib2.urlopen(url)
+        headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; rv:8.0) Gecko/20100101 Firefox/8.0',
+                    'Referer': 'http://translate.google.com/'}
+        req=urllib2.urlopen(urllib2.Request(url, headers=headers))
         content=req.read()
+
+        print content
 
         encoding=req.headers['content-type'].split('charset=')[-1]
         ucontent = unicode(content, encoding)
 
-        start = ucontent.find('"translatedText":"') + 18
-        if (langFrom==""):
-            end = ucontent.find('","det')
-            if (end==-1):
-                if (ucontent.find('could not reliably detect source language')>-1):
-                    return ["PRIVMSG $C$ :Could not reliably detect source language."]
-                else:
-                    return ["PRIVMSG $C$ :Translation failure! :("]
-            detectedLang = ucontent[end+28:end+30]
-
+        #Parse source language
+        sourceLanguage = re.search(',"(\w+)",,', ucontent)
+        if sourceLanguage is None:
+            sourceLanguage = ''
         else:
-            end = ucontent.find('"}')
-            detectedLang = langFrom
+            sourceLanguage = sourceLanguage.group(1)
 
-        langFrom="an unknown language"
-        for x in self.langTable:
-            if (x[1]==detectedLang):
-                langFrom=x[0]
-                break
+        if sourceLanguage in self.languages:
+            sourceLanguage = self.languages[sourceLanguage]
+        else:
+            sourceLanguage = ''
+            
+        #Parse translation
+        translation = re.search('\[\[\["(.+?)"', ucontent)
+        if translation is None:
+            return ["PRIVMSG $C$ :Translation failure! :("]
+        translation = translation.group(1)
 
-        translation = ucontent[start:end]
-        print translation
-
-        return ["PRIVMSG $C$ :" + translation + " (translated from "+langFrom[0].capitalize()+langFrom[1:]+")"]
+        if sourceLanguage != '':
+            return ["PRIVMSG $C$ :" + translation + " (translated from "+sourceLanguage+")"]
+        else:
+            return ["PRIVMSG $C$ :" + translation]
 
 
     def describe(self, complete):

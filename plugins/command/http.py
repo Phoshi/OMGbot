@@ -13,7 +13,10 @@ class pluginClass(plugin):
     def gettype(self):
         return "command"
     def action(self, complete):
-        urlobject = urllib2.urlopen(complete.message())
+        try:
+            urlobject = urllib2.urlopen(complete.message(), None, 20)
+        except URLError as e:
+            return ["PRIVMSG $C$ :Connection Error: %s"%e]
         status = urlobject.code
         type = urlobject.headers.type
         if "server" in urlobject.headers.keys():

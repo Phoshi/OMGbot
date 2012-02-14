@@ -10,13 +10,13 @@ class pluginClass(plugin):
     def gettype(self):
         return "command"
     def expand(self, toExpand, toExpandWith):
-        expansions = re.findall("\$([0-9]*)\$", toExpand)
-        if len(expansions) == 0 and toExpand.find('$*$')==-1:
+        expansions = re.findall("[$&]([0-9]*)[$&]", toExpand)
+        if len(expansions) == 0 and (toExpand.find('$*$')==-1 and toExpand.find('&*&')==-1):
             return "%s%s"%(toExpand, toExpandWith)
         for expansion in expansions:
             index = int(expansion)-1
             if len(toExpandWith.split())>index:
-                toExpand = toExpand.replace("$%s$"%expansion, toExpandWith.split()[index])
+                toExpand = toExpand.replace("$%s$"%expansion, toExpandWith.split()[index]).replace("&%s&"%expansion, toExpandWith.split()[index])
         toExpand = toExpand.replace('$*$', toExpandWith)
         return toExpand
 

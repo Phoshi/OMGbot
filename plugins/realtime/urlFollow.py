@@ -13,13 +13,13 @@ def fixXMLEntities(match):
     value=int(match.group()[2:-1])
     return chr(value)
 def parseYoutube(url, pageData):
-    if re.findall("watch\?v=", url)!=[]:
+    if re.findall("watch\?.*?v=", url)!=[]:
         print "Looking for title..."
         title=re.findall("<\s*title\s*>[\s]*(.*?)</title\s*>", pageData, re.I)[0]
         title = title.replace("YouTube","")
         title = title.strip().strip("-").strip() #I KNOW I'M SORRY I'M SO SO SORRY
         print "Looking for uploader..."
-        uploader = re.findall(r"user/(.*?)\"", pageData, re.I)[0]
+        uploader = re.findall(r"user/(.*?)[?\"]", pageData, re.I)[0]
         print uploader
         print pageData.find('length_seconds')
         length = re.findall(r"amp;length_seconds=([0-9]*)", pageData)[0]
@@ -75,7 +75,7 @@ class pluginClass(plugin):
         self.specialDomains={"http://www.youtube.com":parseYoutube, "http://adf.ly":parseAdfly,
                 "https?://[^.]*.deviantart.com":doNothing, "http://ponibooru.413chan.net":parsePonibooru, "http://bronibooru.mlponies.com":parseBronibooru,
                 "http://mylittlefacewhen.com":doNothing, "http://mlfw.info":doNothing,
-                "http://.*\.rainbow-da.sh":doNothing, "http://p.0au.de":doNothing}
+                "http://.*\.rainbow-da.sh":doNothing, "http://p.0au.de":doNothing, "http://.*\.4chan.org":doNothing}
     def gettype(self):
         return "realtime"
     def __init_db_tables__(self, name):
@@ -92,12 +92,10 @@ class pluginClass(plugin):
         return False
     def action(self, complete):
         showDomain = True if settingsHandler.readSetting("urlFollow", "showDomainLink")=="true" else False
-        if "urlFollowQueue" not in globalv.variables.keys():
-            print "Doing it sync"
+        if "urlFollowQueue" not in globalv.communication.keys():
             return self.urlFollow(complete, showDomain)
         else:
-            print "Doing it async"
-            globalv.variables["urlFollowQueue"].put((complete, self.urlFollow))
+            globalv.communication["urlFollowQueue"].put((complete, self.urlFollow))
             return [""]
     def urlFollow(self, complete, showDomain = True):
         complete=complete.complete()[1:].split(' :',1)

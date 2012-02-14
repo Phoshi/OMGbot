@@ -25,7 +25,7 @@ class Stream(object):
             return self.Channel
         return self.Name
     def getThread(self):
-        return Thread
+        return self.Thread
 
     def updateStatus(self):
         print "Checking status for",self.Channel
@@ -66,7 +66,7 @@ class asyncInput(object):
             streams.append(newStream)
 
 
-        globalv.variables["drawfriendStreams"] = streams
+        globalv.communication["drawfriendStreams"] = streams
         print "Sending success message to",outputChannel
         Queue.put("#PRIVMSG %s :Drawfriend Stream Notifier started successfully!\r\n"%outputChannel)
         while running:
@@ -83,7 +83,7 @@ class asyncInput(object):
                 except:
                     print "DrawFriends Updater: Could not update",stream.getName()+"'s", "stream!"
                     continue
-                if oldStatus != newStatus:
+                if oldStatus != newStatus and newStatus:
                     message = "%s %s streaming: \x02%s\r\n"%(stream.getName(), "started" if newStatus else "stopped", stream.getChannel())
                     Queue.put("#PRIVMSG %s :%s"%(outputChannel, message))
 

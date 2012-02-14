@@ -34,6 +34,8 @@ class asyncInput(object):
                         potentialName = feedLink
                     feedNames[feedLink] = potentialName
                     feed=feedparser.parse("http://"+feedLink)
+                    if (len(feed.entries) == 0):
+                        continue
                     latestFeedItem[feedLink]=feed.entries[0].id
                     if initComplete:
                         Queue.put("#PRIVMSG %s :Added feed to list!\r\n"%channel)
@@ -62,6 +64,8 @@ class asyncInput(object):
             try:
                 for feedName in feeds:
                     feed=feedparser.parse("http://"+feedName)
+                    if (len(feed.entries) == 0):
+                        continue
                     newFeedItem=feed.entries[0].id
                     newItems=[]
                     if newFeedItem!=latestFeedItem[feedName]:

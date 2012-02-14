@@ -18,11 +18,14 @@ class Image:
         self.dimensions = dimensions
         self.source = source
     def ToString(self):
-        tags = ", ".join(self.tags[:15]) or "Unknown Tags"
+        if len(self.tags) > 0:
+            tagsList = ", ".join(self.tags[0].split()[:5]) or "Unknown Tags"
+        else:
+            tagsList = "Unknown Tags"
         size = self.dimensions or "Unknown Size"
         source = self.source or "No Source"
 
-        return "%s - %s (%s) - \x02Source:\x02 %s"%(self.imageUrl, str(tags), size, source)
+        return "%s - %s (%s) - \x02Source:\x02 %s"%(self.imageUrl, tagsList, size, source)
 
 
 
@@ -44,8 +47,11 @@ class Site:
         self.translationDict = translations
 
     def Search(self, tags):
+        print tags
+        print self.additionalTags
         searchTags = " ".join(self.additionalTags + map(lambda tag:tag if not tag in self.translationDict else self.translationDict[tag], tags.split(' ')))
-        searchPage = self.searchUrl % urllib.quote_plus(searchTags)
+        searchTags = searchTags.strip()
+        searchPage = self.searchUrl % urllib.quote(searchTags)
         print searchPage
 
         request = urllib2.urlopen(searchPage, None, 10)
@@ -79,7 +85,7 @@ class Site:
 
 def getSiteList(explicit = False):
     sites = []
-    bestPonyDict = {"best_pony":"twilight_sparkle"}
+    bestPonyDict = {"best_pony":"twilight_sparkle", "lightning_lesbian":"rainbow_dash"}
     ponibooruImageRegexDict = {"tags":r"name='tag_edit__tags' value='(.*?)'",
             "dimensions":r"<br>Size: (\d+x\d+)",
             "source":r"<br>Source: <a href='(.*?)'>"}
@@ -99,7 +105,8 @@ def getSiteList(explicit = False):
             "sweetie_belle":"sweetie_belle_(mlp)",
             "applebloom":"applebloom_(mlp)",
             "gilda":"gilda_(mlp)",
-            "best_pony":"twilight_sparkle_(mlp)"}
+            "best_pony":"twilight_sparkle_(mlp)",
+            "lightning_lesbian":"rainbow_dash_(mlp)"}
 
     E621ImageRegexDict = {"tags":r"<title>(.*?)</title>"}
     E621DefaultTags = ["friendship_is_magic"]
