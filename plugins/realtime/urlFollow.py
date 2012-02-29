@@ -2,6 +2,7 @@
 from plugins import plugin
 import globalv
 import re
+import json
 import urllib
 import urllib2
 import xml.sax.saxutils
@@ -49,11 +50,17 @@ def parseAdfly(url, pageData):
     else:
         return ['PRIVMSG $C$ :Target URL: %s'%fullURL]
 def parsePonibooru(url, pageData):
-    tags = re.findall("value='([^']*)' id='tag_editor'>", pageData)[0]
+    print "Getting tags"
+    tags = re.findall("<textarea\s*?name='tag_edit__tags'.*?>(.*?)</textarea>", pageData)[0]
+    print "Stats"
     stats = re.findall("<div id='Statisticsleft'>(.*?<)/div>", pageData)[0]
+    print "ID"
     id = re.findall("Id:\s([0-9]*)", stats)[0]
+    print "Size"
     size = re.findall("Size: (.+?)<", stats)[0].strip()
+    print "Filesize"
     filesize = re.findall("Filesize: (.+?)<", stats)[0].strip()
+    print "Source"
     source = re.findall("Source: <a href='(.+?)'", stats)
     if (source != []):
         source = source[0].strip()
@@ -70,12 +77,24 @@ def parseBronibooru(url, pageData):
     if (len(tags)>0):
         return ["PRIVMSG $C$ :Image Tags: %s%s"%(tags, more)]
     return [""]
+
+def parseFimF(url, pageData):
+    newUrl = "http://www.fimfiction.net/api/story.php?story=" + url
+    JSONString = urllib2.urlopen(newUrl).read()
+    storyData = json.loads(JSONString)
+
+    numChapters = len(storyData["story"]["chapters"])
+    return ["PRIVMSG $C$ :Story: %s by %s, %s words over %s chapter%s. %s views, %s/-%s rating; %s"%(storyData["story"]["title"], storyData["story"]["author"]["name"],storyData["story"]["words"], numChapters, "" if numChapters == 1 else "s", storyData["story"]["views"], storyData["story"]["likes"], storyData["story"]["dislikes"], storyData["story"]["short_description"])
+            ]
+
 class pluginClass(plugin):
     def __init__(self):
         self.specialDomains={"http://www.youtube.com":parseYoutube, "http://adf.ly":parseAdfly,
-                "https?://[^.]*.deviantart.com":doNothing, "http://ponibooru.413chan.net":parsePonibooru, "http://bronibooru.mlponies.com":parseBronibooru,
+                "https?://[^.]*.deviantart.com":doNothing, "http://ponibooru.413chan.net":parsePonibooru, "http://www.ponibooru.org":parsePonibooru,
+                "http://bronibooru.mlponies.com":parseBronibooru,
                 "http://mylittlefacewhen.com":doNothing, "http://mlfw.info":doNothing,
-                "http://.*\.rainbow-da.sh":doNothing, "http://p.0au.de":doNothing, "http://.*\.4chan.org":doNothing}
+                "http://.*\.rainbow-da.sh":doNothing, "http://p.0au.de":doNothing, "http://.*\.4chan.org":doNothing,
+                "http://.*\.fimfiction.net":parseFimF}
     def gettype(self):
         return "realtime"
     def __init_db_tables__(self, name):
